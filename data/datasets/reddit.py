@@ -20,7 +20,7 @@ def dict2list(comment_aspects):
     return comment_scores
 
 
-class reddit(Dataset):
+class Reddit(Dataset):
     def __init__(self,
                  folder: str,
                  ann_root: str,
