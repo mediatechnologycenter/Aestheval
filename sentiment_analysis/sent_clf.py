@@ -26,8 +26,7 @@ def _clean_text(text, remove_url=True, remove_escaped_chars=True):
 
 class Predictor():
 
-    def __init__(self, texts: list['str'], model_path: str) -> None:
-        self.texts=texts
+    def __init__(self, model_path: str) -> None:
         self.model_path = model_path
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
         self.model = AutoModelForSequenceClassification.from_pretrained(self.model_path)
@@ -35,9 +34,7 @@ class Predictor():
         #Uses the gpu 0 by default
         self.pipe = TextClassificationPipeline(model=self.model, tokenizer=self.tokenizer, return_all_scores=True, device=0)
 
-    def predict(self):
-        print(f"{self.model_path} prediction of {len(self.texts)} comments")
-        cleaned_texts = [_clean_text(text) for text in self.texts]
-        results = [self.pipe(text, truncation=True, max_length=512) for text in cleaned_texts]
+    def predict(self, texts:  list['str']):
+        cleaned_texts = [_clean_text(text) for text in texts]
+        results = self.pipe(cleaned_texts, truncation=True, max_length=512)
         return results
-        

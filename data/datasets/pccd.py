@@ -32,19 +32,22 @@ class PCCD(Dataset):
 
         self.image_folder = os.path.join(data_path, "images", "full")
         
-        self.dict_keys =['general_impression', 'subject_of_photo', 'composition',
+        # The order of these attributes it's important to match with the order of scores
+        self.attributes = ['general_impression', 'subject_of_photo', 'composition',
                          'use_of_camera', 'depth_of_field', 'color_lighting',
-                         'focus','description','title', 'score', 'category']
-        self.keys = [{k: d[k] for k in self.dict_keys} for d in data]
+                         'focus']
+        self.selected_keys = self.attributes + ['description','title', 'score', 'category']
+        
+        self.dataset = [{k: d[k] for k in self.selected_keys} for d in data]
 
         self.transform = transform
-        self.is_train = True if split == 'TRAIN' else False
+        self.is_train = True if split.lower() == 'train' else False
 
     def __len__(self):
-        return len(self.keys)
+        return len(self.dataset)
 
     def __getitem__(self, ind):
-        data = self.keys[ind]
+        data = self.dataset[ind]
         data['im_name'] = data.pop('title') #Rename
         image_file = os.path.join(self.image_folder, data['im_name'])
         image = Image.open(image_file).convert('RGB')
