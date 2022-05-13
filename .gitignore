@@ -130,4 +130,4 @@ dmypy.json
 
 
 # Data directories
-data/data/PCCD
+data/*/*
