@@ -1,6 +1,6 @@
 from setuptools import setup
 
-
+	
 install_requires = [
 ]
 
@@ -8,7 +8,7 @@ install_requires = [
 setup(
 	name="aestheval",
 	install_requires=install_requires,
-    packages=['data', 'sentiment_analysis'],
+    packages=['aestheval'],
 	version="0.1",
 	scripts=[]
 )

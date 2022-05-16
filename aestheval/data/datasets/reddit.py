@@ -6,6 +6,8 @@ import json
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
+from torchvision import transforms
+import pandas as pd
 
 
 dict_keys =['general_impression', 'subject_of_photo', 'composition', 
@@ -22,31 +24,60 @@ def dict2list(comment_aspects):
 
 class Reddit(Dataset):
     def __init__(self,
-                 folder: str,
-                 ann_root: str,
                  split: str,
+                 data_path: str = '/media/data-storage/datasets/reddit/',
+                 split_path: str = "aestheval/data/datasets/datasplits/reddit/",
                  transform=None):
         """Create a text image dataset from a directory with congruent text and image names.
 
         Args:
-            folder (str): Folder containing images and text files matched by their paths' respective "stem"
+            data_path (str): Folder containing images and text files matched by their paths' respective "stem"
         """
-        datafile = os.path.join(ann_root, "reddit_photocritique_image_comments_%s.json" % split.lower())
-        data = json.load(io.open(datafile), encoding = 'utf-8')
-        self.image_folder = Path(folder)
-        self.im_paths = data['im_paths']
-        self.comments = data['first_level_comments_values']
-        self.aspects = [dict2list(s) for s in data['aspect_prediction']]
-        self.transform = transform
+        assert split in ["train", "test", "validation"], "Split must be one of those: 'train', 'test', 'validation'"
+      
+        self.image_folder = Path(data_path)
+        
+        # Get split
+
+        self.processed=False
+
+        if os.path.exists(Path(data_path, f"processed_{split}.json")):
+            split_file = Path(data_path, f"processed_{split}.json")
+            self.processed = True
+            with open(split_file, 'r') as f:
+                self.data = json.load(f)
+        else:
+
+            datafile = os.path.join(data_path, "reddit_photocritique_image_comments.json")
+            with open(datafile, 'r') as f:
+                data = json.load(f)
+            data = pd.DataFrame(data)
+            ids = pd.read_csv(f"{split_path}{split}_ids.csv", header=None, names=['im_paths'])
+            self.data = data[data['im_paths'].isin(ids['im_paths'])]
+
+            # self.im_paths = data['im_paths']
+            # self.comments = data['first_level_comments_values']
+            # aspect_scores = [dict2list(s) for s in data['aspect_prediction']]
+            # self.data['aspect_scores'] = aspect_scores
+
+            self.data = self.data.to_dict(orient='list')
+        
+        # The order of these attributes it's important to match with the order of scores
+        self.aesthetic_attributes = ['general_impression', 'subject_of_photo', 'composition',
+                         'use_of_camera', 'depth_of_field', 'color_lighting',
+                         'focus']
+        
+        if transform is None:
+            self.transform = transforms.ToTensor()
+
         self.is_train = True if split == 'TRAIN' else False
 
     def __len__(self):
-        return len(self.im_paths)
+        return len(self.data["im_paths"])
 
     def __getitem__(self, ind):
-        image_file = os.path.join(self.image_folder, self.im_paths[ind])
+        data = {k: self.data[k][ind] for k in self.data}
+        image_file = os.path.join(self.image_folder, data["im_paths"])
         image = Image.open(image_file).convert('RGB')
         image = self.transform(image)
-        aspects = self.aspects[ind]
-        comments = self.comments[ind]
-        return image, comments, aspects, self.im_paths[ind]
+        return image, data

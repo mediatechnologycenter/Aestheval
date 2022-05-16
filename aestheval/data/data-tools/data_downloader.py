@@ -7,7 +7,7 @@ def config_parser():
     parser = configargparse.ArgumentParser(description="Downloader script")   
     # dataset options
     parser.add_argument("--data_path", type=str, help="Data directory to download the datasets", default="data/")
-    parser.add_argument("--dataset", type=str, choices=["ava", "all", "reddit", "pccd"], default="pccd", help="Dataset(s) to download.")
+    parser.add_argument("--dataset", type=str, choices=["ava", "all", "reddit", "pccd"], default=["pccd",], help="Dataset(s) to download.")
     return parser
 
 
@@ -30,3 +30,11 @@ if __name__ == "__main__":
 
         os.remove(output_file)
 
+    if "ava" in args.dataset:
+        args.data_path = args.data_path + 'ava/'
+        if not os.path.exists(args.data_path):
+            os.mkdir(args.data_path)
+        output_file= os.path.join(args.data_path, 'ava_comments.txt')
+        
+        url = "https://drive.google.com/file/d/1yUKZpnyIqmyQMBTswmLRnMPgSIthgzmf/view?usp=sharing"
+        gdown.download(url=url, output=output_file, quiet=False, fuzzy=True)

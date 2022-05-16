@@ -1,13 +1,10 @@
 # Originally found in https://github.com/lucidrains/DALLE-pytorch
 from pathlib import Path
 import os
-import io
 import json
-import torch
 from torchvision import transforms
 from PIL import Image
 from torch.utils.data import Dataset
-import pandas as pd
 
 class PCCD(Dataset):
     def __init__(self,
@@ -22,7 +19,13 @@ class PCCD(Dataset):
             folder (str): Folder containing images and text files matched by their paths' respective "stem"
         """
         data_path = Path(data_path)
-        split_file = os.path.join(split_path, f"guru_{split.lower()}.json")
+        self.processed=False
+
+        if os.path.exists(Path(data_path, f"processed_{split}.json")):
+            split_file = Path(data_path, f"processed_{split}.json")
+            self.processed = True
+        else:
+            split_file = os.path.join(split_path, f"guru_{split.lower()}.json")
 
         with open(split_file, 'r') as f:
             data = json.load(f)
@@ -33,7 +36,14 @@ class PCCD(Dataset):
         self.attributes = ['general_impression', 'subject_of_photo', 'composition',
                          'use_of_camera', 'depth_of_field', 'color_lighting',
                          'focus']
-        self.selected_keys = self.attributes + ['description','title', 'score', 'category']
+        
+        # To take into account the change of variable name when processing
+        if self.processed:
+            var_name = 'im_name'
+        else:
+            var_name = 'title'                 
+        self.selected_keys = self.attributes + ['description',var_name, 'score', 'category']
+
 
         #If sentiment is already in data
         if "sentiment" in data[0].keys():
@@ -43,7 +53,8 @@ class PCCD(Dataset):
         self.dataset = []
         for d in data:
             dic = {k: d[k] for k in self.selected_keys}
-            dic['im_name'] = dic.pop('title') # Rename for readibility
+            if not self.processed:
+                dic['im_name'] = dic.pop('title') # Rename for readibility
             self.dataset.append(dic)
                 
         self.transform = transform
