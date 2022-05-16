@@ -47,7 +47,7 @@ class PCCD(Dataset):
 
         #If sentiment is already in data
         if "sentiment" in data[0].keys():
-            self.selected_keys = self.selected_keys + ["sentiment"]
+            self.selected_keys = self.selected_keys + ["sentiment", 'mean_score', 'stdev_score','number_of_scores']
         
         
         self.dataset = []
