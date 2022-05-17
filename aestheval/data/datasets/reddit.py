@@ -28,7 +28,8 @@ class Reddit(Dataset):
                  data_path: str = '/media/data-storage/datasets/reddit/',
                  images_path:str = '/media/data-storage/datasets/reddit/',
                  split_path: str = "aestheval/data/datasets/datasplits/reddit/",
-                 transform=None):
+                 transform=None, 
+                 load_images: bool = True):
         """Create a text image dataset from a directory with congruent text and image names.
 
         Args:
@@ -37,7 +38,7 @@ class Reddit(Dataset):
         assert split in ["train", "test", "validation"], "Split must be one of those: 'train', 'test', 'validation'"
       
         self.image_folder = Path(images_path)
-        
+        self.load_images = load_images
         # Get split
 
         self.processed=False
@@ -78,7 +79,10 @@ class Reddit(Dataset):
 
     def __getitem__(self, ind):
         data = self.data[ind]
-        image_file = os.path.join(self.image_folder, data["im_paths"])
-        image = Image.open(image_file).convert('RGB')
-        image = self.transform(image)
+        if self.load_images:
+            image_file = os.path.join(self.image_folder, data["im_paths"])
+            image = Image.open(image_file).convert('RGB')
+            image = self.transform(image)
+        else:
+            image=None
         return image, data
