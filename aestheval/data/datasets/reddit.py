@@ -26,6 +26,7 @@ class Reddit(Dataset):
     def __init__(self,
                  split: str,
                  data_path: str = '/media/data-storage/datasets/reddit/',
+                 images_path:str = '/media/data-storage/datasets/reddit/',
                  split_path: str = "aestheval/data/datasets/datasplits/reddit/",
                  transform=None):
         """Create a text image dataset from a directory with congruent text and image names.
@@ -35,7 +36,7 @@ class Reddit(Dataset):
         """
         assert split in ["train", "test", "validation"], "Split must be one of those: 'train', 'test', 'validation'"
       
-        self.image_folder = Path(data_path)
+        self.image_folder = Path(images_path)
         
         # Get split
 
@@ -53,14 +54,14 @@ class Reddit(Dataset):
                 data = json.load(f)
             data = pd.DataFrame(data)
             ids = pd.read_csv(f"{split_path}{split}_ids.csv", header=None, names=['im_paths'])
-            self.data = data[data['im_paths'].isin(ids['im_paths'])]
+            data = data[data['im_paths'].isin(ids['im_paths'])]
 
             # self.im_paths = data['im_paths']
             # self.comments = data['first_level_comments_values']
             # aspect_scores = [dict2list(s) for s in data['aspect_prediction']]
             # self.data['aspect_scores'] = aspect_scores
 
-            self.data = self.data.to_dict(orient='list')
+            self.data = json.loads(data.to_json(orient='records', indent=1))
         
         # The order of these attributes it's important to match with the order of scores
         self.aesthetic_attributes = ['general_impression', 'subject_of_photo', 'composition',
@@ -73,10 +74,10 @@ class Reddit(Dataset):
         self.is_train = True if split == 'TRAIN' else False
 
     def __len__(self):
-        return len(self.data["im_paths"])
+        return len(self.data)
 
     def __getitem__(self, ind):
-        data = {k: self.data[k][ind] for k in self.data}
+        data = self.data[ind]
         image_file = os.path.join(self.image_folder, data["im_paths"])
         image = Image.open(image_file).convert('RGB')
         image = self.transform(image)

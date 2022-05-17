@@ -131,8 +131,9 @@ dmypy.json
 
 # Data directories
 data/*/*
-!data/ava/*.json
-!data/ava/*.csv
+!data/ava/dpchallenge_id_score.json
+!uncorrupted_images.json
+!AVA_data_official_test.csv
 
 #Files
 testing.ipynb

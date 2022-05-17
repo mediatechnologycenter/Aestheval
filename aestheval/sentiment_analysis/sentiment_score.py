@@ -125,6 +125,6 @@ def sentiment_ava():
 
 if __name__ == "__main__":
     # sentiment_pccd()
-    # sentiment_reddit()
-    sentiment_ava()
+    sentiment_reddit()
+    # sentiment_ava()
 
