@@ -28,8 +28,7 @@ class DPC(Dataset):
         self.attributes = ['color_lighting', 'composition', 'depth_and_focus', 'impression_and_subject', 'use_of_camera']
                 
         self.transform = transform
-
-        if transform is None:
+        if self.transform is None:
             self.transform = transforms.ToTensor()
         self.is_train = True if split.lower() == 'train' else False
 

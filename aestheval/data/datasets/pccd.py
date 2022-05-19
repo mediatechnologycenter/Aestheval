@@ -58,7 +58,6 @@ class PCCD(Dataset):
             self.dataset.append(dic)
                 
         self.transform = transform
-
         if transform is None:
             self.transform = transforms.ToTensor()
         self.is_train = True if split.lower() == 'train' else False

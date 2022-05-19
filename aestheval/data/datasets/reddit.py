@@ -69,7 +69,8 @@ class Reddit(Dataset):
                          'use_of_camera', 'depth_of_field', 'color_lighting',
                          'focus']
         
-        if transform is None:
+        self.transform = transform
+        if self.transform is None:
             self.transform = transforms.ToTensor()
 
         self.is_train = True if split == 'TRAIN' else False

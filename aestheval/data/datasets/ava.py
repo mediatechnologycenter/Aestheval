@@ -29,9 +29,10 @@ class AVADataset(Dataset):
         db_file=os.path.join(self.dataset_path,"uncorrupted_images.json")
         metadata_file=os.path.join(self.dataset_path,"AVA_data_official_test.csv")
 
+        self.transform = transform
         if transform is None:
             self.transform = transforms.ToTensor()
-            
+
         self.processed=False
 
         if os.path.exists(Path(comments_path, f"processed_{split}.json")):
