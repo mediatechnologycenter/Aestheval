@@ -14,12 +14,13 @@ class AVADataset(Dataset):
         dataset_path = '/media/data-storage/datasets/ava/',
         comments_path= 'data/ava/',
         transform=None,
+        load_images: bool = True
     ):
 
 
         assert split in ["train", "test", "validation"], "Split must be one of those: 'train', 'test', 'validation'"
 
-
+        self.load_images = load_images
         self.dataset_path = dataset_path
         self.im_dir = Path(self.dataset_path, "images")
         self.split = split
@@ -136,8 +137,10 @@ class AVADataset(Dataset):
 
     def __getitem__(self, ind):
         data = self.dataset[ind]
-        image_file = os.path.join(self.im_dir, data['im_path'])
-        image = Image.open(image_file).convert('RGB')
-        image = self.transform(image)
-
+        if self.load_images:
+            image_file = os.path.join(self.im_dir, data['im_path'])
+            image = Image.open(image_file).convert('RGB')
+            image = self.transform(image)
+        else:
+            image=None
         return image, data

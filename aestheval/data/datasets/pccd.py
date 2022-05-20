@@ -12,12 +12,14 @@ class PCCD(Dataset):
                  data_path: str = "data/PCCD",
                  split_path: str = "aestheval/data/datasets/datasplits/PCCD",
                  transform=None,
+                 load_images: bool = True
                  ):
         """Create a text image dataset from a directory with congruent text and image names.
 
         Args:
             folder (str): Folder containing images and text files matched by their paths' respective "stem"
         """
+        self.load_images=load_images
         data_path = Path(data_path)
         self.processed=False
 
@@ -67,8 +69,12 @@ class PCCD(Dataset):
 
     def __getitem__(self, ind):
         data = self.dataset[ind]
-        image_file = os.path.join(self.image_folder, data['im_name'])
-        image = Image.open(image_file).convert('RGB')
-        image = self.transform(image)
+
+        if self.load_images:
+            image_file = os.path.join(self.image_folder, data['im_name'])
+            image = Image.open(image_file).convert('RGB')
+            image = self.transform(image)
+        else:
+            image=None
 
         return image, data

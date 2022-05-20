@@ -12,12 +12,15 @@ class DPC(Dataset):
                  data_path: str = "data/dpc/dpc.json",
                  images_path: str = '/media/data-storage/datasets/ava/images/',
                  transform=None,
+                 load_images: bool = True
                  ):
         """Create a text image dataset from a directory with congruent text and image names.
 
         Args:
             folder (str): Folder containing images and text files matched by their paths' respective "stem"
         """
+
+        self.load_images = load_images
         data_path = Path(data_path)
         self.images_path = images_path
         self.processed=False
@@ -37,8 +40,12 @@ class DPC(Dataset):
 
     def __getitem__(self, ind):
         data = self.data[ind]
-        image_file = os.path.join(self.images_path, data['im_id'])
-        image = Image.open(image_file).convert('RGB')
-        image = self.transform(image)
+
+        if self.load_images:
+            image_file = os.path.join(self.images_path, data['im_id'])
+            image = Image.open(image_file).convert('RGB')
+            image = self.transform(image)
+        else:
+            image=None
 
         return image, data
