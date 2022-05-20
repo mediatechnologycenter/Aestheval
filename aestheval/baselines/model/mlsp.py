@@ -1,245 +1,152 @@
-"""
-file - model.py
-Implements the aesthemic model and emd loss used in paper.
-
-Copyright (C) Yunxiao Shi 2017 - 2021
-NIMA is released under the MIT license. See LICENSE for the fill license text.
-"""
-
 import os
-import torch
-import torch.nn as nn
+import kuti
+from kuti import applications as apps
+from kuti import model_helper as mh
+from kuti import tensor_ops as ops
+from kuti import image_utils
+from kuti import generic
+import pandas as pd, numpy as np
 
-import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import torch.optim as optim
-import torchvision.transforms as transforms
-from torchvision.models import vgg16
-from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import DataLoader
-
-
-"""Neural IMage Assessment model by Google"""
+# MODEL DEF
+from keras.layers import Input, GlobalAveragePooling2D
+from keras.models import Model
 
 
-class Model(nn.Module):
+def prepare_dataframe(datadict):
+    split_mapping = {'train': 'training', 'validation': 'validation', 'test': 'test'}
 
-    def __init__(self, num_classes=10):
-        super(Model, self).__init__()
-        base_model = vgg16(pretrained=True)
-        self.features = base_model.features
-        self.classifier = nn.Sequential(
-            nn.Dropout(p=0.75),
-            nn.Linear(in_features=25088, out_features=num_classes),
-            nn.Softmax(dim=1))
+    dataset = []
+    for s, d in datadict.items():
+        tmp = pd.DataFrame(d.dataset)
+        tmp['set'] = [split_mapping[s]] * len(tmp.index)
+        dataset.append(tmp)
 
-    def forward(self, x):
-        out = self.features(x)
-        out = out.view(out.size(0), -1)
-        out = self.classifier(out)
-        return out
+    dataset = pd.concat(dataset, ignore_index=True)
+    dataset = dataset.rename(columns={'im_name': 'image_name'})
+    dataset = dataset.rename(columns={'mean_score': 'MOS'})
+    return dataset
 
 
-def single_emd_loss(p, q, r=2):
-    """
-    Earth Mover's Distance of one sample
+def extract_features(features_path):
+    data_dir = "data/PCCD/images/full"
+    ids = pd.DataFrame({'image_name': os.listdir(data_dir)})
+    input_shape = (None, None, 3)
+    model = apps.model_inceptionresnet_pooled(input_shape)
+    pre   = apps.process_input[apps.InceptionResNetV2]
+    model_name = 'irnv2_mlsp_wide'
+    gen_params = dict(batch_size  = 1,
+                  data_path   = data_dir,
+                  input_shape = ('orig',),
+                  inputs = ['image_name',],
+                  process_fn  = pre,
+                  fixed_batches = False)
 
-    Args:
-        p: true distribution of shape num_classes × 1
-        q: estimated distribution of shape num_classes × 1
-        r: norm parameter
-    """
-    assert p.shape == q.shape, "Length of the two distribution must be the same"
-    length = p.shape[0]
-    emd_loss = 0.0
-    for i in range(1, length + 1):
-        emd_loss += torch.abs(sum(p[:i] - q[:i])) ** r
-    return (emd_loss / length) ** (1. / r)
+    helper = mh.ModelHelper(model, model_name + '_orig', ids,
+                            features_root = features_path,
+                            gen_params    = gen_params)
 
-
-class Loss(nn.Module):
-    def forward(self, p, q, r=2):
-        """
-        Earth Mover's Distance on a batch
-
-        Args:
-            p: true distribution of shape mini_batch_size × num_classes × 1
-            q: estimated distribution of shape mini_batch_size × num_classes × 1
-            r: norm parameters
-        """
-        assert p.shape == q.shape, "Shape of the two distribution batches must be the same."
-        mini_batch_size = p.shape[0]
-        loss_vector = []
-        for i in range(mini_batch_size):
-            loss_vector.append(single_emd_loss(p[i], q[i], r=r))
-        return sum(loss_vector) / mini_batch_size
+    print('Saving features')
+    batch_size = 1024
+    numel = len(ids)
+    for i in range(0, numel, batch_size):
+        istop = min(i+batch_size, numel)
+        print('Processing images', i, ':', istop)
+        ids_batch = ids[i:istop].reset_index(drop=True)
+        helper.save_activations(ids=ids_batch, verbose=True,\
+                                save_as_type=np.float16)
 
 
-def collate_fn(batch):
-    def from_dict_to_tensor(dictionary):
-        values = list(dictionary.values())
-        values = torch.tensor([list(v.values()) for v in values if v is not None])
-        return values.mean(0)
+def helper_init(dataset_name, ckpt_path, features_file, ids):
+    fc1_size = 2048
+    image_size = '[orig]'
+    input_size = (5,5,16928)
+    model_name = features_file.split('/')[-2]
+    loss = 'MSE'
+    bn = 2
+    fc_sizes = [fc1_size, fc1_size/2, fc1_size/8,  1]
+    dropout_rates = [0.25, 0.25, 0.5, 0]
 
-    images = torch.stack([sample[0] for sample in batch])
-    labels = torch.stack([from_dict_to_tensor(sample[1]['sentiment']) for sample in batch])
-    return images, labels
+    monitor_metric = 'val_plcc_tf'; monitor_mode = 'max'
+    metrics = ["MAE", ops.plcc_tf]
+    outputs = 'MOS'
+
+    input_feats = Input(shape=input_size, dtype='float32')
+
+    # SINGLE-block
+    x = apps.inception_block(input_feats, size=1024)
+    x = GlobalAveragePooling2D(name='final_GAP')(x)
+
+    pred = apps.fc_layers(x,
+                          name  = 'head',
+                          fc_sizes      = fc_sizes,
+                          dropout_rates = dropout_rates,
+                          batch_norm    = bn)
+
+    model = Model(inputs=input_feats, outputs=pred)
+
+    gen_params = dict(batch_size    = 128,
+                      data_path     = features_file,                  
+                      input_shape   = input_size,
+                      inputs        = ['image_name'],
+                      outputs       = [outputs], 
+                      random_group  = False,
+                      fixed_batches = True)
+
+    helper = mh.ModelHelper(model, model_name, ids, 
+                            max_queue_size = 128,
+                            loss           = loss,
+                            metrics        = metrics,
+                            monitor_metric = monitor_metric, 
+                            monitor_mode   = monitor_mode,
+                            multiproc      = False, workers = 1,
+        #                     multiproc      = True, workers = 3,
+                            early_stop_patience = 5,
+                            logs_root      = ckpt_path + 'logs',
+                            models_root    = ckpt_path + 'models',
+                            gen_params     = gen_params)
+
+    helper.model_name.update(fc1 = '[%d]' % fc1_size, 
+                             im  = image_size,
+                             bn  = bn,
+                             do  = str(dropout_rates).replace(' ',''),
+                             mon = '[%s]' % monitor_metric,
+                             ds  = dataset_name)
+
+    print(helper.model_name())
+    return helper
 
 
 def train(dataset_name, dataset, batch_size=64, epochs=5, early_stopping_patience=10):
-    ckpt_path = 'ckpts/NIMA/%s' % dataset_name
+    ckpt_path = 'ckpts/MLSP/%s' % dataset_name
+    features_path = ckpt_path + '/features/'
+    if (not os.path.exists(features_path)) or (len(os.listdir(features_path)) == 0):
+        extract_features(ckpt_path)
+    else:
+        print("Found features in directory: ", features_path)
 
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-    writer = SummaryWriter()
+    ids = prepare_dataframe(dataset)
 
-    dataset['train'].transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.RandomCrop(224),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(), 
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-            std=[0.229, 0.224, 0.225])])
-
-    dataset['validation'].transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.RandomCrop(224),
-        transforms.ToTensor(), 
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-            std=[0.229, 0.224, 0.225])])
-
-    num_classes = 3
-    model = Model(num_classes=num_classes)
-    model = model.to(device)
-
-    conv_base_lr = 5e-3
-    dense_lr = 5e-4
-    criterion = Loss()
-    optimizer = optim.SGD([
-        {'params': model.features.parameters(), 'lr': conv_base_lr},
-        {'params': model.classifier.parameters(), 'lr': dense_lr}],
-        momentum=0.9
-        )
-
-    param_num = 0
-    for param in model.parameters():
-        if param.requires_grad:
-            param_num += param.numel()
-    print('Trainable params: %.2f million' % (param_num / 1e6))
-
-    train_loader = DataLoader(dataset['train'],
-                              batch_size=batch_size,
-                              shuffle=True,
-                              num_workers=4,
-                              collate_fn=collate_fn)
-    val_loader = DataLoader(dataset['validation'],
-                            batch_size=batch_size,
-                            shuffle=False,
-                            num_workers=4,
-                            collate_fn=collate_fn)
-
-    # for early stopping
-    count = 0
-    init_val_loss = float('inf')
-    train_losses = []
-    val_losses = []
-    for epoch in range(epochs):
-        batch_losses = []
-        for i, data in enumerate(train_loader):
-            images = data[0].to(device)
-            labels = data[1].to(device).float()
-            outputs = model(images)
-            loss = criterion(labels, outputs)
-            batch_losses.append(loss.item())
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            print('Epoch: %d/%d | Step: %d/%d | Training EMD loss: %.4f' % (epoch + 1, epochs, i + 1, len(dataset['train']) // batch_size + 1, loss.item()))
-            writer.add_scalar('batch train loss', loss.item(), i + epoch * (len(dataset['train']) // batch_size + 1))
-
-        avg_loss = sum(batch_losses) / (len(dataset['train']) // batch_size + 1)
-        train_losses.append(avg_loss)
-        print('Epoch %d mean training EMD loss: %.4f' % (epoch + 1, avg_loss))
-
-        # exponetial learning rate decay
-        if False:
-            if (epoch + 1) % 10 == 0:
-                conv_base_lr = conv_base_lr * config.lr_decay_rate ** ((epoch + 1) / config.lr_decay_freq)
-                dense_lr = dense_lr * config.lr_decay_rate ** ((epoch + 1) / config.lr_decay_freq)
-                optimizer = optim.SGD([
-                    {'params': model.features.parameters(), 'lr': conv_base_lr},
-                    {'params': model.classifier.parameters(), 'lr': dense_lr}],
-                    momentum=0.9
-                )
-
-        # do validation after each epoch
-        batch_val_losses = []
-        for data in val_loader:
-            images = data[0].to(device)
-            labels = data[1].to(device).float()
-            with torch.no_grad():
-                outputs = model(images)
-            val_loss = criterion(labels, outputs)
-            batch_val_losses.append(val_loss.item())
-        avg_val_loss = sum(batch_val_losses) / (len(dataset['validation']) // batch_size + 1)
-        val_losses.append(avg_val_loss)
-        print('Epoch %d completed. Mean EMD loss on val set: %.4f.' % (epoch + 1, avg_val_loss))
-        writer.add_scalars('epoch losses', {'epoch train loss': avg_loss, 'epoch val loss': avg_val_loss}, epoch + 1)
-
-        # Use early stopping to monitor training
-        if avg_val_loss < init_val_loss:
-            init_val_loss = avg_val_loss
-            # save model weights if val loss decreases
-            print('Saving model...')
-            if not os.path.exists(ckpt_path):
-                os.makedirs(ckpt_path)
-            torch.save(model.state_dict(), os.path.join(ckpt_path, 'epoch-%d.pth' % (epoch + 1)))
-            print('Done.\n')
-            # reset count
-            count = 0
-        elif avg_val_loss >= init_val_loss:
-            count += 1
-            if count == early_stopping_patience:
-                print('Val EMD loss has not decreased in %d epochs. Training terminated.' % early_stopping_patience)
-                break
-
-    print('Training completed.')
+    features_file = ckpt_path + '/features/irnv2_mlsp_wide_orig/grp:1 i:1[orig] lay:final o:1[5,5,16928].h5'
+    helper = helper_init(dataset_name, ckpt_path, features_file, ids)
+    for lr in [1e-4, 1e-5, 1e-6]:
+        helper.load_model()
+        helper.train(lr=lr, epochs=20)
 
 
-def evaluate(dataset, batch_size=64):
-    num_classes = 3
-    model = Model(num_classes=num_classes)
-    model = model.to(device)
-    import ipdb ; ipdb.set_trace()
-    model.load_state_dict(torch.load(""))
-    model.eval()
 
-    dataset['test'].transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.RandomCrop(224),
-        transforms.ToTensor(), 
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-            std=[0.229, 0.224, 0.225])])
+def evaluate(dataset_name, dataset):
+    ckpt_path = 'ckpts/MLSP/%s' % dataset_name
+    model_name = 'irnv2_mlsp_wide_orig/bn:2 bsz:128 do:[0.25,0.25,0.5,0] ds:PCCD fc1:[2048] i:1[5,5,16928] im:[orig] l:MSE mon:[val_plcc_tf] o:1[1]'
 
-    test_loader = DataLoader(dataset,
-                             batch_size=batch_size,
-                             shuffle=False,
-                             num_workers=4)
+    ids = pd.DataFrame(dataset.dataset)
+    ids['set'] = ['test'] * len(ids.index)
+    ids = ids.rename(columns={'im_name': 'image_name'})
+    ids = ids.rename(columns={'mean_score': 'MOS'})
 
-    mean_preds = []
-    std_preds = []
-    for data in test_loader:
-        image = data['image'].to(device)
-        output = model(image)
-        output = output.view(10, 1)
-        predicted_mean, predicted_std = 0.0, 0.0
-        for i, elem in enumerate(output, 1):
-            predicted_mean += i * elem
-        for j, elem in enumerate(output, 1):
-            predicted_std += elem * (j - predicted_mean) ** 2
-        predicted_std = predicted_std ** 0.5
-        mean_preds.append(predicted_mean)
-        std_preds.append(predicted_std)
-    # Do what you want with predicted and std...
+    features_file = ckpt_path + '/features/irnv2_mlsp_wide_orig/grp:1 i:1[orig] lay:final o:1[5,5,16928].h5'
+    helper = helper_init(dataset_name, ckpt_path, features_file, ids)
+    if helper.load_model(model_name=model_name):
+        y_test, y_pred, SRCC_test, PLCC_test = apps.test_rating_model(helper)
+
+    torch.save({'gt': y_test, 'pred': y_pred},
+                ckpt_path+"/predictions.pth")
