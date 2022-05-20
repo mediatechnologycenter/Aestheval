@@ -23,7 +23,7 @@ def compute_score(sentiments: "list[dict]"):
 
 def sentiment_pccd():
     # Load datasets
-    pccd_dataset = {split: PCCD(split) for split in SPLITS}
+    pccd_dataset = {split: PCCD(split, load_images=False) for split in SPLITS}
 
     # Load predictor
     predictor = Predictor(model_path="cardiffnlp/twitter-roberta-base-sentiment-latest")
@@ -57,7 +57,7 @@ def sentiment_pccd():
 
 def sentiment_reddit():
     # Load datasets
-    reddit_dataset = {split: Reddit(split) for split in SPLITS}
+    reddit_dataset = {split: Reddit(split, load_images=False) for split in SPLITS}
 
     # Load predictor
     predictor = Predictor(model_path="cardiffnlp/twitter-roberta-base-sentiment-latest")
@@ -91,7 +91,7 @@ def sentiment_reddit():
 
 def sentiment_ava():
     # Load datasets
-    ava_dataset = {split: AVADataset(split) for split in SPLITS}
+    ava_dataset = {split: AVADataset(split, load_images=False) for split in SPLITS}
 
     # Load predictor
     predictor = Predictor(model_path="cardiffnlp/twitter-roberta-base-sentiment-latest")
@@ -124,7 +124,7 @@ def sentiment_ava():
             json.dump(processed, f, indent=1)
 
 if __name__ == "__main__":
-    # sentiment_pccd()
+    sentiment_pccd()
     sentiment_reddit()
-    # sentiment_ava()
+    sentiment_ava()
 

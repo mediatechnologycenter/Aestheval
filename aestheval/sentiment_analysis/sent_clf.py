@@ -34,7 +34,7 @@ class Predictor():
         #Uses the gpu 0 by default
         self.pipe = TextClassificationPipeline(model=self.model, tokenizer=self.tokenizer, return_all_scores=True, device=0)
 
-    def predict(self, texts:  list['str']):
+    def predict(self, texts:  "list['str']"):
         cleaned_texts = [_clean_text(text) for text in texts]
         results = self.pipe(cleaned_texts, truncation=True, max_length=512)
         # Reorder result
