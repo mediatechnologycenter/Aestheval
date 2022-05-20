@@ -29,8 +29,7 @@ def get_hardest_k_examples(model, testing_set, config, device, k=32):
         for batch_idx, data in enumerate(tqdm(loader)):
               
             if "vit"==config["model_name"]:    
-                im_tensor, batch_data = data  
-                gt_score = batch_data["mean_score"]
+                im_tensor, gt_score = data  
                 input = im_tensor.to(device)
             
             target = gt_score.to(device)
@@ -70,8 +69,7 @@ def test(model, test_loader, config, device):
         for batch_idx, data in enumerate(tqdm(test_loader)):
                 
             if "vit"==config["model_name"]:    
-                im_tensor, batch_data = data  
-                gt_score = batch_data["mean_score"]  
+                im_tensor, gt_score = data  
                 input = im_tensor.to(device)
             
             gt_score = gt_score.to(device)

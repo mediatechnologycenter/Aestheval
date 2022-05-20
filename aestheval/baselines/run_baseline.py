@@ -34,16 +34,24 @@ def run(dataset_name, method):
             "save_model_every": 3,
             "batch_size": 1
         }
+        torch.cuda.empty_cache()
         model = _build_model(config).to(device)
+
+        def collate_fn(batch):
+            image, data = batch[0]
+            print(image.shape)
+            return image.unsqueeze(0), torch.Tensor([data['mean_score']])
 
         train_loader = DataLoader(dataset['train'],
                               batch_size=config["batch_size"],
                               shuffle=True,
-                              num_workers=4)
+                              num_workers=0,
+                              collate_fn=collate_fn)
         valid_loader = DataLoader(dataset['validation'],
                               batch_size=config["batch_size"],
                               shuffle=False,
-                              num_workers=4)
+                              num_workers=0,
+                              collate_fn=collate_fn)
 
         train(model, train_loader, valid_loader, config, device)
 

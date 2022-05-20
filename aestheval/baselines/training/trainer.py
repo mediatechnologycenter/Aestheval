@@ -22,8 +22,7 @@ def train(model, train_loader, valid_loader, config, device):
                 tepoch.set_description(f"Epoch {epoch}")
                 
                 if "vit" == config["model_name"]:
-                    im_tensor, batch_data = data  
-                    gt_score = batch_data["mean_score"]
+                    im_tensor, gt_score = data  
                     input = im_tensor.to(device)
                 
                 gt_score = gt_score.to(device)
@@ -71,8 +70,7 @@ def val(model, test_loader, config, device, optimizer,best_val_loss, current_epo
         for batch_idx, data in enumerate(tqdm(test_loader)):
                
             if "vit"==config["model_name"]:    
-                im_tensor, batch_data = data  
-                gt_score = batch_data["mean_score"] 
+                im_tensor, gt_score = data  
                 input = im_tensor.to(device)
             
             gt_score = gt_score.to(device)
