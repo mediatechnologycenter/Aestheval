@@ -65,7 +65,6 @@ class AVADataset(Dataset):
             ].itertuples(index=False):
                 self.labels[image_name] = [score, challenge_id]
 
-            
             self.preprocess_data()
         
 
@@ -128,8 +127,6 @@ class AVADataset(Dataset):
         self.dataset = dataset
         
         return imgs_not_found
-
-
     
     def __len__(self):
         return len(self.dataset)
