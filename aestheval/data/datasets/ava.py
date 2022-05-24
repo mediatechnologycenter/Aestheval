@@ -11,7 +11,7 @@ class AVADataset(Dataset):
     def __init__(
         self,
         split,
-        dataset_path = '/media/data-storage/datasets/ava/',
+        dataset_path = 'data/ava/',
         comments_path= 'data/ava/',
         transform=None,
         load_images: bool = True
