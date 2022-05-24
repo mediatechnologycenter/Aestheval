@@ -1,5 +1,6 @@
 import os
 import kuti
+import torch
 from kuti import applications as apps
 from kuti import model_helper as mh
 from kuti import tensor_ops as ops
@@ -22,14 +23,12 @@ def prepare_dataframe(datadict):
         dataset.append(tmp)
 
     dataset = pd.concat(dataset, ignore_index=True)
-    dataset = dataset.rename(columns={'im_name': 'image_name'})
+    dataset = dataset.rename(columns={'im_name': 'image_name', 'im_paths': 'image_name'})
     dataset = dataset.rename(columns={'mean_score': 'MOS'})
     return dataset
 
 
-def extract_features(features_path):
-    data_dir = "data/PCCD/images/full"
-    ids = pd.DataFrame({'image_name': os.listdir(data_dir)})
+def extract_features(data_dir, ids, features_path):
     input_shape = (None, None, 3)
     model = apps.model_inceptionresnet_pooled(input_shape)
     pre   = apps.process_input[apps.InceptionResNetV2]
@@ -119,12 +118,13 @@ def helper_init(dataset_name, ckpt_path, features_file, ids):
 def train(dataset_name, dataset, batch_size=64, epochs=5, early_stopping_patience=10):
     ckpt_path = 'ckpts/MLSP/%s' % dataset_name
     features_path = ckpt_path + '/features/'
+    ids = prepare_dataframe(dataset)
+    data_dir = str(dataset['train'].image_folder)
+
     if (not os.path.exists(features_path)) or (len(os.listdir(features_path)) == 0):
-        extract_features(ckpt_path)
+        extract_features(data_dir, ids, features_path)
     else:
         print("Found features in directory: ", features_path)
-
-    ids = prepare_dataframe(dataset)
 
     features_file = ckpt_path + '/features/irnv2_mlsp_wide_orig/grp:1 i:1[orig] lay:final o:1[5,5,16928].h5'
     helper = helper_init(dataset_name, ckpt_path, features_file, ids)

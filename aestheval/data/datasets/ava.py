@@ -17,7 +17,6 @@ class AVADataset(Dataset):
         load_images: bool = True
     ):
 
-
         assert split in ["train", "test", "validation"], "Split must be one of those: 'train', 'test', 'validation'"
 
         self.load_images = load_images
@@ -66,9 +65,8 @@ class AVADataset(Dataset):
             ].itertuples(index=False):
                 self.labels[image_name] = [score, challenge_id]
 
-            
             self.preprocess_data()
-        
+
 
     def preprocess_data(self):
         if self.split == "train":
@@ -80,19 +78,19 @@ class AVADataset(Dataset):
         else:
             print("Loading ava test set")
             im_list = self.test_image_names
-        
+
         self.dataset = []
         discarded_images = []
         self.ids = []
         for _, im_name in enumerate(im_list):
-            
+
             im_id = Path(im_name).stem
 
             if not (im_id in self.image_key_map):
                 # print(f"discarding {im_id}")
                 discarded_images.append(im_id)
                 continue
-            
+
             self.ids.append(im_id)
             self.dataset.append(
                 {
@@ -129,8 +127,6 @@ class AVADataset(Dataset):
         self.dataset = dataset
         
         return imgs_not_found
-
-
     
     def __len__(self):
         return len(self.dataset)
