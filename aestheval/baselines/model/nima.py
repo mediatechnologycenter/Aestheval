@@ -146,7 +146,7 @@ def train(dataset_name, dataset, batch_size=64, epochs=100, early_stopping_patie
     val_losses = []
     for epoch in range(epochs):
         batch_losses = []
-        for i, data in enumerate(train_loader):
+        for i, data in tqdm(enumerate(train_loader)):
             images = data[0].to(device)
             labels = data[1].to(device).float()
             outputs = model(images)
