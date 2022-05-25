@@ -9,7 +9,7 @@ GitPython==3.1.27
 huggingface-hub==0.6.0
 idna==3.3
 joblib==1.1.0
-numpy @ file:///home/conda/feedstock_root/build_artifacts/numpy_1651020388975/work
+numpy 
 opencv-python==4.5.5.64
 packaging==21.3
 pandas==1.4.2
@@ -30,7 +30,7 @@ scipy==1.8.0
 sentry-sdk==1.5.11
 setproctitle==1.2.3
 shortuuid==1.0.9
-six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
+six
 smmap==5.0.0
 threadpoolctl==3.1.0
 timm @ git+https://github.com/rwightman/pytorch-image-models.git@95feb1da41c1fe95ce9634b83db343e08224a8c5
@@ -42,6 +42,6 @@ torchsort==0.1.9
 torchvision==0.12.0
 tqdm==4.64.0
 transformers==4.19.2
-typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/typing_extensions_1650370875435/work
+typing_extensions
 urllib3==1.26.9
 wandb==0.12.16
