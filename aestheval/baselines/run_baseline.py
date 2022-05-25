@@ -1,4 +1,4 @@
-# from aestheval.baselines.model import nima, mlsp
+from aestheval.baselines.model import nima, mlsp
 from aestheval.baselines.training.build_models import _build_model
 from aestheval.baselines.training.trainer import train, val
 from aestheval.baselines.evaluating.evaluate import evaluate
