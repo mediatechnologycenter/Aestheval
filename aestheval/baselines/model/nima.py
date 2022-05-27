@@ -103,8 +103,7 @@ def train(dataset_name, dataset, batch_size=64, epochs=100, early_stopping_patie
             std=[0.229, 0.224, 0.225])])
 
     dataset['validation'].transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.RandomCrop(224),
+        transforms.Resize((224, 224)),
         transforms.ToTensor(), 
         transforms.Normalize(mean=[0.485, 0.456, 0.406], 
             std=[0.229, 0.224, 0.225])])
@@ -113,14 +112,16 @@ def train(dataset_name, dataset, batch_size=64, epochs=100, early_stopping_patie
     model = Model(num_classes=num_classes)
     model = model.to(device)
 
-    conv_base_lr = 5e-3
-    dense_lr = 5e-4
+    conv_base_lr = 3e-7
+    dense_lr = 3e-4
     criterion = Loss()
     optimizer = optim.SGD([
         {'params': model.features.parameters(), 'lr': conv_base_lr},
         {'params': model.classifier.parameters(), 'lr': dense_lr}],
         momentum=0.9
         )
+
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.95)
 
     param_num = 0
     for param in model.parameters():
@@ -163,16 +164,7 @@ def train(dataset_name, dataset, batch_size=64, epochs=100, early_stopping_patie
         train_losses.append(avg_loss)
         print('Epoch %d mean training EMD loss: %.4f' % (epoch + 1, avg_loss))
 
-        # exponetial learning rate decay
-        if False:
-            if (epoch + 1) % 10 == 0:
-                conv_base_lr = conv_base_lr * config.lr_decay_rate ** ((epoch + 1) / config.lr_decay_freq)
-                dense_lr = dense_lr * config.lr_decay_rate ** ((epoch + 1) / config.lr_decay_freq)
-                optimizer = optim.SGD([
-                    {'params': model.features.parameters(), 'lr': conv_base_lr},
-                    {'params': model.classifier.parameters(), 'lr': dense_lr}],
-                    momentum=0.9
-                )
+        scheduler.step()
 
         # do validation after each epoch
         batch_val_losses = []
@@ -227,8 +219,7 @@ def evaluate(dataset_name, dataset, batch_size=64):
     model.eval()
 
     dataset.transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.RandomCrop(224),
+        transforms.Resize((224, 224)),
         transforms.ToTensor(), 
         transforms.Normalize(mean=[0.485, 0.456, 0.406], 
             std=[0.229, 0.224, 0.225])])

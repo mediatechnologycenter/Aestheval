@@ -28,7 +28,7 @@ class Reddit(Dataset):
                  data_path: str = 'data/reddit/',
                  images_path:str = 'data/reddit/',
                  split_path: str = "aestheval/data/datasets/datasplits/reddit/",
-                 transform=None, 
+                 transform=None,
                  load_images: bool = True):
         """Create a text image dataset from a directory with congruent text and image names.
 
@@ -36,7 +36,7 @@ class Reddit(Dataset):
             data_path (str): Folder containing images and text files matched by their paths' respective "stem"
         """
         assert split in ["train", "test", "validation"], "Split must be one of those: 'train', 'test', 'validation'"
-      
+
         self.image_folder = Path(images_path)
         self.load_images = load_images
         # Get split
@@ -58,12 +58,12 @@ class Reddit(Dataset):
             data = data[data['im_paths'].isin(ids['im_paths'])]
 
             self.dataset = json.loads(data.to_json(orient='records', indent=1))
-        
+
         # The order of these attributes it's important to match with the order of scores
         self.aesthetic_attributes = ['general_impression', 'subject_of_photo', 'composition',
                          'use_of_camera', 'depth_of_field', 'color_lighting',
                          'focus']
-        
+
         self.transform = transform
         if self.transform is None:
             self.transform = transforms.ToTensor()
