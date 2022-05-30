@@ -25,10 +25,20 @@ class DPC(Dataset):
         self.images_path = images_path
         self.processed=False
 
-        with open(data_path, 'r') as f:
-            self.data = json.load(f)
         
         self.attributes = ['color_lighting', 'composition', 'depth_and_focus', 'impression_and_subject', 'use_of_camera']
+
+        self.dataset = []
+        for attribute in self.attributes:
+            with open(Path(data_path, attribute + '.json'), 'r') as f:
+                data = json.load(f)
+            for k, v in data.items():
+
+                self.dataset.append({
+                    'im_id': k,
+                    'comments': v,
+                    'attribute': attribute
+                })
                 
         self.transform = transform
         if self.transform is None:
@@ -36,10 +46,10 @@ class DPC(Dataset):
         self.is_train = True if split.lower() == 'train' else False
 
     def __len__(self):
-        return len(self.data)
+        return len(self.dataset)
 
     def __getitem__(self, ind):
-        data = self.data[ind]
+        data = self.dataset[ind]
 
         if self.load_images:
             image_file = os.path.join(self.images_path, data['im_id'])
