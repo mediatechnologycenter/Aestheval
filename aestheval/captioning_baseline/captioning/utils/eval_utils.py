@@ -57,7 +57,7 @@ def language_eval(dataset, preds, preds_n, eval_kwargs, split):
             dataset_file = 'data/dataset_coco.json'
         elif 'flickr30k' in dataset or 'f30k' in dataset:
             dataset_file = 'data/dataset_flickr30k.json'
-        training_sentences = set([' '.join(__['tokens']) for _ in json.load(open(dataset_file))['images'] if not _['split'] in ['val', 'test'] for __ in _['sentences']])
+        training_sentences = set([' '.join(__['tokens']) for _ in json.load(open(dataset_file))['images'] if not _['split'] in ['validation', 'test'] for __ in _['sentences']])
         generated_sentences = set([_['caption'] for _ in preds_n])
         novels = generated_sentences - training_sentences
         out['novel_sentences'] = float(len(novels)) / len(preds_n)
@@ -130,7 +130,7 @@ def eval_split(model, crit, loader, eval_kwargs={}):
     verbose_beam = eval_kwargs.get('verbose_beam', 0)
     verbose_loss = eval_kwargs.get('verbose_loss', 1)
     num_images = eval_kwargs.get('num_images', eval_kwargs.get('val_images_use', -1))
-    split = eval_kwargs.get('split', 'val')
+    split = eval_kwargs.get('split', 'validation')
     lang_eval = eval_kwargs.get('language_eval', 0)
     dataset = eval_kwargs.get('dataset', 'coco')
     beam_size = eval_kwargs.get('beam_size', 1)
