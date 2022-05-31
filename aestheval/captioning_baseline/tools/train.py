@@ -112,7 +112,7 @@ def train(opt):
     epoch = infos['epoch']
     # For back compatibility
     if 'iterators' in infos:
-        infos['loader_state_dict'] = {split: {'index_list': infos['split_ix'][split], 'iter_counter': infos['iterators'][split]} for split in ['train', 'val', 'test']}
+        infos['loader_state_dict'] = {split: {'index_list': infos['split_ix'][split], 'iter_counter': infos['iterators'][split]} for split in ['train', 'validation', 'test']}
     loader.load_state_dict(infos['loader_state_dict'])
     if opt.load_best_score == 1:
         best_val_score = infos.get('best_val_score', None)
@@ -244,7 +244,7 @@ def train(opt):
             if (iteration % opt.save_checkpoint_every == 0 and not opt.save_every_epoch) or \
                 (epoch_done and opt.save_every_epoch):
                 # eval model
-                eval_kwargs = {'split': 'val',
+                eval_kwargs = {'split': 'validation',
                                 'dataset': opt.input_json}
                 eval_kwargs.update(vars(opt))
                 val_loss, predictions, lang_stats = eval_utils.eval_split(
