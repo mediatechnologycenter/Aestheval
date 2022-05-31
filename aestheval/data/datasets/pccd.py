@@ -9,8 +9,8 @@ from torch.utils.data import Dataset
 class PCCD(Dataset):
     def __init__(self,
                  split: str,
-                 data_path: str = "data/PCCD",
-                 split_path: str = "aestheval/data/datasets/datasplits/PCCD",
+                 dataset_path: str = "data/PCCD",
+                 split_path: str = "aestheval/data/datasets/PCCD",
                  transform=None,
                  load_images: bool = True
                  ):
@@ -20,11 +20,11 @@ class PCCD(Dataset):
             folder (str): Folder containing images and text files matched by their paths' respective "stem"
         """
         self.load_images=load_images
-        data_path = Path(data_path)
+        dataset_path = Path(dataset_path)
         self.processed=False
 
-        if os.path.exists(Path(data_path, f"processed_{split}.json")):
-            split_file = Path(data_path, f"processed_{split}.json")
+        if os.path.exists(Path(dataset_path, f"processed_{split}.json")):
+            split_file = Path(dataset_path, f"processed_{split}.json")
             self.processed = True
         else:
             split_file = os.path.join(split_path, f"guru_{split.lower()}.json")
@@ -32,7 +32,7 @@ class PCCD(Dataset):
         with open(split_file, 'r') as f:
             data = json.load(f)
 
-        self.image_folder = os.path.join(data_path, "images", "full")
+        self.image_folder = os.path.join(dataset_path, "images", "full")
         
         # The order of these attributes it's important to match with the order of scores
         self.attributes = ['general_impression', 'subject_of_photo', 'composition',

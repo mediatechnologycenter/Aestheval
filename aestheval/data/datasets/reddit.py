@@ -25,9 +25,8 @@ def dict2list(comment_aspects):
 class Reddit(Dataset):
     def __init__(self,
                  split: str,
-                 data_path: str = 'data/reddit/',
-                 images_path:str = 'data/reddit/',
-                 split_path: str = "aestheval/data/datasets/datasplits/reddit/",
+                 dataset_path: str = 'data/reddit/',
+                 split_path: str = "aestheval/data/datasets/reddit/",
                  transform=None,
                  load_images: bool = True):
         """Create a text image dataset from a directory with congruent text and image names.
@@ -37,25 +36,27 @@ class Reddit(Dataset):
         """
         assert split in ["train", "test", "validation"], "Split must be one of those: 'train', 'test', 'validation'"
 
-        self.image_folder = Path(images_path)
+        self.image_folder = Path(dataset_path)
         self.load_images = load_images
         # Get split
 
         self.processed=False
 
-        if os.path.exists(Path(data_path, f"processed_{split}.json")):
-            split_file = Path(data_path, f"processed_{split}.json")
+        if os.path.exists(Path(dataset_path, f"processed_{split}.json")):
+            split_file = Path(dataset_path, f"processed_{split}.json")
             self.processed = True
             with open(split_file, 'r') as f:
                 self.dataset = json.load(f)
         else:
 
-            datafile = os.path.join(data_path, "reddit_photocritique_image_comments.json")
+            datafile = os.path.join(dataset_path, "reddit_photocritique_image_comments.json")
             with open(datafile, 'r') as f:
                 data = json.load(f)
             data = pd.DataFrame(data)
             ids = pd.read_csv(f"{split_path}{split}_ids.csv", header=None, names=['im_paths'])
             data = data[data['im_paths'].isin(ids['im_paths'])]
+            for d in data:
+                d['im_id'] = d['im_paths'].split('submission_')[1].split('-')[0]
 
             self.dataset = json.loads(data.to_json(orient='records', indent=1))
 
@@ -81,4 +82,5 @@ class Reddit(Dataset):
             image = self.transform(image)
         else:
             image = None
+        data["im_score"] = data['mean_score'] * 10 # x10 to set the scores between 0 and 10
         return image, data
