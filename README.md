@@ -1,31 +1,31 @@
 # aestheval
 
-## Create environment
+## 1. Create environment
 
 TODO: Improve env setup
 
-1.
 ```
 conda env create -f environment.yml
-```
-
-```
 pip install -e .
 ```
 
-## Download datasets
+## 2. Download datasets
 
 ```
-python aestheval/data/data-tools/data_downloader.py
+python main.py --download_data
 ```
 
-
-## Predict sentiment of comments 
+## 3. Predict sentiment of comments 
 
 On PCCD, AVA and Reddit (takes a while)
 
 ```
-python main.py
+python main.py --compute_sentiment_score
 ```
 
-Already processed files can be found under `data/`
+Already processed files can be found under `data/`. This directory can be changed using the `--data_path` argument
+
+
+## Future work
+ [] Optimize sequential sentiment score computation
+ [] Add ViT training code

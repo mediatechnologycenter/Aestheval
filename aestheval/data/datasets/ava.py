@@ -7,12 +7,16 @@ from torch.utils.data import Dataset
 import pandas as pd
 from tqdm import tqdm
 
-class AVADataset(Dataset):
+
+path = Path(os.path.dirname(__file__))
+ava_files_path = Path(path.parent, 'ava')
+
+
+class AVA(Dataset):
     def __init__(
         self,
         split,
         dataset_path = 'data/ava/',
-        comments_path= 'data/ava/',
         transform=None,
         load_images: bool = True
     ):
@@ -23,11 +27,11 @@ class AVADataset(Dataset):
         self.dataset_path = dataset_path
         self.im_dir = Path(self.dataset_path, "images")
         self.split = split
-        self.comments_path = comments_path
+        self.comments_path = self.dataset_path
 
-        score_file=os.path.join(self.dataset_path, "dpchallenge_id_score.json")
-        db_file=os.path.join(self.dataset_path,"uncorrupted_images.json")
-        metadata_file=os.path.join(self.dataset_path,"AVA_data_official_test.csv")
+        score_file=os.path.join(ava_files_path, "dpchallenge_id_score.json")
+        db_file=os.path.join(ava_files_path,"uncorrupted_images.json")
+        metadata_file=os.path.join(ava_files_path,"AVA_data_official_test.csv")
 
         self.transform = transform
         if transform is None:
@@ -35,8 +39,8 @@ class AVADataset(Dataset):
 
         self.processed=False
 
-        if os.path.exists(Path(comments_path, f"processed_{split}.json")):
-            split_file = Path(comments_path, f"processed_{split}.json")
+        if os.path.exists(Path(self.comments_path, f"processed_{split}.json")):
+            split_file = Path(self.comments_path, f"processed_{split}.json")
             self.processed = True
             with open(split_file, 'r') as f:
                 self.dataset = json.load(f)

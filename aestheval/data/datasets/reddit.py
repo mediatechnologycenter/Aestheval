@@ -13,6 +13,9 @@ import pandas as pd
 dict_keys =['general_impression', 'subject_of_photo', 'composition', 
             'use_of_camera', 'depth_of_field', 'color_lighting', 'focus']
 
+path = Path(os.path.dirname(__file__))
+reddit_files_path = Path(path.parent, 'reddit')
+
 def dict2list(comment_aspects):
     comment_scores = []
     for ca in comment_aspects:
@@ -26,7 +29,6 @@ class Reddit(Dataset):
     def __init__(self,
                  split: str,
                  dataset_path: str = 'data/reddit/',
-                 split_path: str = "aestheval/data/datasets/reddit/",
                  transform=None,
                  load_images: bool = True):
         """Create a text image dataset from a directory with congruent text and image names.
@@ -47,16 +49,17 @@ class Reddit(Dataset):
             self.processed = True
             with open(split_file, 'r') as f:
                 self.dataset = json.load(f)
+            for data in self.dataset:
+                data["im_score"] = data['mean_score'] * 10 # x10 to set the scores between 0 and 10
         else:
 
             datafile = os.path.join(dataset_path, "reddit_photocritique_image_comments.json")
             with open(datafile, 'r') as f:
                 data = json.load(f)
             data = pd.DataFrame(data)
-            ids = pd.read_csv(f"{split_path}{split}_ids.csv", header=None, names=['im_paths'])
+            ids = pd.read_csv(Path(reddit_files_path, f"{split}_ids.csv"), header=None, names=['im_paths'])
             data = data[data['im_paths'].isin(ids['im_paths'])]
-            for d in data:
-                d['im_id'] = d['im_paths'].split('submission_')[1].split('-')[0]
+            data['im_id'] = data['im_paths'].apply(lambda x: x.split('submission_')[1].split('-')[0])                
 
             self.dataset = json.loads(data.to_json(orient='records', indent=1))
 
@@ -82,5 +85,4 @@ class Reddit(Dataset):
             image = self.transform(image)
         else:
             image = None
-        data["im_score"] = data['mean_score'] * 10 # x10 to set the scores between 0 and 10
         return image, data
