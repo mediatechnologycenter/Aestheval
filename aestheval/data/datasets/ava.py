@@ -78,6 +78,7 @@ class AVA(AestheticsDataset):
             im_list = self.test_image_names
 
         self.dataset = []
+        self.ids = []
         discarded_images = []
         for _, im_name in enumerate(im_list):
 
@@ -103,7 +104,7 @@ class AVA(AestheticsDataset):
         AVA_comments = {}
 
         imgs_not_found = []
-        with open(Path(self.comments_path, 'ava_comments.txt'), 'r', encoding = 'utf-8') as f:
+        with open(Path(self.dataset_path, 'ava_comments.txt'), 'r', encoding = 'utf-8') as f:
             for line in f.readlines():
                 elements = [elem.strip() for elem in line.strip('\n').split('#')]
                 
