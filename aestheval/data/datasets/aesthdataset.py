@@ -59,4 +59,4 @@ class AestheticsDataset(torch.utils.data.Dataset, ABC):
             image = self.transform(im)
         else:
             image=None
-        return image, data
+        return image, data['mean_score'] * 10 #x10 to scale it to [0,10]

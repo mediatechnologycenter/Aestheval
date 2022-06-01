@@ -1,6 +1,7 @@
 from aestheval.data.datautils.data_downloader import download_datasets
 from aestheval.text_prediction.sentiment_score import *
 from aestheval.baselines.run_baseline import run
+from aestheval.baselines.probbing import run as run_probbing
 import configargparse
 
 def config_parser():
@@ -11,6 +12,7 @@ def config_parser():
     parser.add_argument("--compute_sentiment_score", action='store_true', help="Whether to compute the sentiment score", default=False)
     parser.add_argument("--dataset_name", type=str, choices=['PCCD', 'Reddit', 'AVA'], required=True)
     parser.add_argument("--evaluate", action='store_true', help="Whether to run only evaluation")
+    parser.add_argument("--model_name", type=str, required=True)
     return parser
 
 if __name__ == "__main__":
@@ -25,4 +27,5 @@ if __name__ == "__main__":
         sentiment_reddit(root_dir=args.data_path)
         sentiment_ava(root_dir=args.data_path)
     
-    run(args.dataset_name, 'nima', args.data_path, args.evaluate)
+    # run(args.dataset_name, 'nima', args.data_path, args.evaluate)
+    run_probbing(args.dataset_name, args.model_name, args.data_path)
