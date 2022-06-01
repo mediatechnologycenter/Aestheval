@@ -1,5 +1,3 @@
-from aestheval.data.datautils.data_downloader import download_datasets
-from aestheval.text_prediction.sentiment_score import *
 from aestheval.baselines.run_baseline import run
 from aestheval.baselines.probbing import run as run_probbing
 import configargparse
@@ -20,9 +18,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.download_data:
+        from aestheval.data.datautils.data_downloader import download_datasets
         download_datasets(data_path=args.data_path, dataset='all')
     
     if args.compute_sentiment_score:
+        from aestheval.text_prediction.sentiment_score import *
         sentiment_pccd(root_dir=args.data_path)
         sentiment_reddit(root_dir=args.data_path)
         sentiment_ava(root_dir=args.data_path)
