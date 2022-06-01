@@ -56,6 +56,7 @@ class Reddit(AestheticsDataset):
                 self.dataset = json.load(f)
             for data in self.dataset:
                 data["im_score"] = data['mean_score'] * 10 # x10 to set the scores between 0 and 10
+                data['comments']= data['first_level_comments_values']
         else:
 
             datafile = os.path.join(dataset_path, "reddit_photocritique_image_comments.json")

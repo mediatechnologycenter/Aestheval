@@ -41,7 +41,7 @@ class AVA(AestheticsDataset):
             self.processed = True
             with open(split_file, 'r') as f:
                 self.dataset = json.load(f)
-                self.ids = [data['im_id'] for data in self.dataset]
+            self.ids = [data['im_id'] for data in self.dataset]
         else:
             with open(score_file, "r") as f:
                 self.score_map = json.load(f)

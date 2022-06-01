@@ -64,6 +64,7 @@ class PCCD(AestheticsDataset):
         self.dataset = []
         for d in data:
             dic = {k: d[k] for k in self.selected_keys}
+            dic['comments'] = [d[k] for k in self.attributes]
             if not self.processed:
                 dic['im_name'] = dic.pop('title') # Rename for readibility
             self.dataset.append(dic)
