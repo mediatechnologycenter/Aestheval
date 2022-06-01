@@ -5,7 +5,7 @@ import io
 import json
 import torch
 from PIL import Image
-from torch.utils.data import Dataset
+from aestheval.data.datasets.aesthdataset import AestheticsDataset
 from torchvision import transforms
 import pandas as pd
 
@@ -25,7 +25,7 @@ def dict2list(comment_aspects):
     return comment_scores
 
 
-class Reddit(Dataset):
+class Reddit(AestheticsDataset):
     def __init__(self,
                  split: str,
                  dataset_path: str = 'data/reddit/',
@@ -38,9 +38,14 @@ class Reddit(Dataset):
         """
         assert split in ["train", "test", "validation"], "Split must be one of those: 'train', 'test', 'validation'"
 
-        self.image_folder = Path(dataset_path)
-        self.load_images = load_images
-        # Get split
+        image_dir = dataset_path
+        
+        AestheticsDataset.__init__(self, 
+            split,
+            dataset_path,
+            image_dir,
+            transform,
+            load_images)
 
         self.processed=False
 
@@ -80,7 +85,7 @@ class Reddit(Dataset):
     def __getitem__(self, ind):
         data = self.dataset[ind]
         if self.load_images:
-            image_file = os.path.join(self.image_folder, data["im_paths"])
+            image_file = os.path.join(self.image_dir, data["im_paths"])
             image = Image.open(image_file).convert('RGB')
             image = self.transform(image)
         else:

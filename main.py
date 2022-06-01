@@ -9,7 +9,7 @@ def config_parser():
     parser.add_argument("--data_path", type=str, help="Data directory to download the datasets", default="data/")
     parser.add_argument("--download_data", action='store_true', help="Whether to download data", default=False)
     parser.add_argument("--compute_sentiment_score", action='store_true', help="Whether to compute the sentiment score", default=False)
-    parser.add_argument("--dataset_name", type=str, choices=['PCCD', 'Reddit', 'AVA'], required=True)
+    # parser.add_argument("--dataset_name", type=str, choices=['PCCD', 'Reddit', 'AVA'], required=True)
     return parser
 
 if __name__ == "__main__":
@@ -25,8 +25,8 @@ if __name__ == "__main__":
         sentiment_reddit(root_dir=args.data_path)
         sentiment_ava(root_dir=args.data_path)
     
-    run(args.dataset_name, 'nima', args.data_path)
-    
+    # run(args.dataset_name, 'nima', args.data_path)
+
     # run('Reddit', 'nima', args.data_path)
     # run('PCCD', 'nima', args.data_path)
     # run('AVA', 'nima', args.data_path)

@@ -4,12 +4,12 @@ import os
 import json
 from torchvision import transforms
 from PIL import Image
-from torch.utils.data import Dataset
+from aestheval.data.datasets.aesthdataset import AestheticsDataset
 
 path = Path(os.path.dirname(__file__))
 pccd_files_path = Path(path.parent, 'PCCD')
 
-class PCCD(Dataset):
+class PCCD(AestheticsDataset):
     def __init__(self,
                  split: str,
                  dataset_path: str = "data/PCCD",
@@ -21,8 +21,15 @@ class PCCD(Dataset):
         Args:
             folder (str): Folder containing images and text files matched by their paths' respective "stem"
         """
-        self.load_images=load_images
-        dataset_path = Path(dataset_path)
+        
+        image_dir = os.path.join(dataset_path, "images", "full")
+        AestheticsDataset.__init__(self, 
+            split,
+            dataset_path,
+            image_dir,
+            transform,
+            load_images)
+
         self.processed=False
 
         if os.path.exists(Path(dataset_path, f"processed_{split}.json")):
@@ -34,7 +41,7 @@ class PCCD(Dataset):
         with open(split_file, 'r') as f:
             data = json.load(f)
 
-        self.image_folder = os.path.join(dataset_path, "images", "full")
+        
         
         # The order of these attributes it's important to match with the order of scores
         self.attributes = ['general_impression', 'subject_of_photo', 'composition',
@@ -61,22 +68,4 @@ class PCCD(Dataset):
                 dic['im_name'] = dic.pop('title') # Rename for readibility
             self.dataset.append(dic)
                 
-        self.transform = transform
-        if transform is None:
-            self.transform = transforms.ToTensor()
         self.is_train = True if split.lower() == 'train' else False
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, ind):
-        data = self.dataset[ind]
-
-        if self.load_images:
-            image_file = os.path.join(self.image_folder, data['im_name'])
-            image = Image.open(image_file).convert('RGB')
-            image = self.transform(image)
-        else:
-            image=None
-
-        return image, data

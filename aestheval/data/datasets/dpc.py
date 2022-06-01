@@ -4,13 +4,13 @@ import os
 import json
 from torchvision import transforms
 from PIL import Image
-from torch.utils.data import Dataset
+from aestheval.data.datasets.aesthdataset import AestheticsDataset
 
-class DPC(Dataset):
+class DPC(AestheticsDataset):
     def __init__(self,
                  split: str,
-                 data_path: str = "data/dpc/dpc.json",
-                 images_path: str = '/media/data-storage/datasets/ava/images/',
+                 dataset_path: str = "data/dpc/dpc.json",
+                 images_path: str = 'data/ava/images/',
                  transform=None,
                  load_images: bool = True
                  ):
@@ -20,42 +20,26 @@ class DPC(Dataset):
             folder (str): Folder containing images and text files matched by their paths' respective "stem"
         """
 
-        self.load_images = load_images
-        data_path = Path(data_path)
-        self.images_path = images_path
+        AestheticsDataset.__init__(self, 
+            split,
+            dataset_path,
+            images_path,
+            transform,
+            load_images)
+
         self.processed=False
 
         
         self.attributes = ['color_lighting', 'composition', 'depth_and_focus', 'impression_and_subject', 'use_of_camera']
+        
+        with open(self.dataset_path, 'r') as f:
+            dataset = json.load(f)
 
         self.dataset = []
-        for attribute in self.attributes:
-            with open(Path(data_path, attribute + '.json'), 'r') as f:
-                data = json.load(f)
-            for k, v in data.items():
-
-                self.dataset.append({
-                    'im_id': k,
-                    'comments': v,
-                    'attribute': attribute
-                })
+        self.ids=[]
+        for data in dataset:
+            if os.path.exists(os.path.join(self.image_dir, data['im_name'])):
+                self.ids.append(data['im_name'])
+                self.dataset.append(data)
                 
-        self.transform = transform
-        if self.transform is None:
-            self.transform = transforms.ToTensor()
         self.is_train = True if split.lower() == 'train' else False
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, ind):
-        data = self.dataset[ind]
-
-        if self.load_images:
-            image_file = os.path.join(self.images_path, data['im_id'])
-            image = Image.open(image_file).convert('RGB')
-            image = self.transform(image)
-        else:
-            image=None
-
-        return image, data
