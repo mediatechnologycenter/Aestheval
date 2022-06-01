@@ -24,6 +24,7 @@ def get_features(dataset, model):
     all_labels = []
     dataloader = DataLoader(dataset, batch_size=1)
     model.to(device)
+    model.eval()
     with torch.no_grad():
         for im, score in tqdm(dataloader):
             images, labels = im, score
