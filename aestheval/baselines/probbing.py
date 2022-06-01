@@ -89,8 +89,10 @@ def run(dataset_name, model_name, root_dir):
     predictions = classifier.predict(test_features)
 
     metrics = get_metrics(test_labels, predictions)
-
-    with open(os.path.join('results', model_name + '_metrics.json'), 'w', encoding='utf-8') as f:
+    output_folder = os.path.join('results', dataset_name)
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
+    with open(os.path.join(output_folder, model_name + '_metrics.json'), 'w', encoding='utf-8') as f:
         json.dump(metrics, f, ensure_ascii=False, indent=1)
 
 
