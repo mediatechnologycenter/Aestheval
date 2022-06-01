@@ -30,8 +30,9 @@ def get_features(dataset, model):
             images, labels = im, score
             features = model.forward_features(images.to(device))
 
-            all_features.append(features.cpu())
-            all_labels.append(labels.cpu())
+            images.detach()
+            all_features.append(features.cpu().detach())
+            all_labels.append(labels.cpu().detach())
 
     return torch.cat(all_features).numpy(), torch.cat(all_labels).numpy()
 
