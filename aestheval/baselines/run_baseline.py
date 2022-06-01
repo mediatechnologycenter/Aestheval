@@ -7,7 +7,8 @@ from torch.utils.data import DataLoader
 
 SPLITS = ('train', 'validation', 'test')
 
-def run(dataset_name, method, root_dir):
+
+def run(dataset_name, method, root_dir, evaluate):
     assert dataset_name in ['PCCD', 'Reddit', 'AVA']
     assert method in ['nima', 'mlsp']
     
@@ -18,5 +19,6 @@ def run(dataset_name, method, root_dir):
     else:
         raise ValueError("Dataset not implemented")
 
-    eval(method).train(dataset_name, dataset)
+    if not evaluate:
+        eval(method).train(dataset_name, dataset)
     eval(method).evaluate(dataset_name, dataset['test'])

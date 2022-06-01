@@ -286,7 +286,6 @@ class Dataset(data.Dataset):
             try:
                 fc_feat = self.fc_loader.get(os.path.basename(self.info['images'][ix]['id']).split('.')[0])
             except:
-                import ipdb ; ipdb.set_trace()
                 # Use average of attention when there is no fc provided (For bottomup feature)
                 fc_feat = att_feat.mean(0)
         else:
