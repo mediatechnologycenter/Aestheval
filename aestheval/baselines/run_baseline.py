@@ -1,4 +1,4 @@
-from aestheval.baselines.model import nima, mlsp
+from aestheval.baselines.model import nima#, mlsp
 import sys
 from aestheval.data.datasets import PCCD, Reddit, AVA
 import os

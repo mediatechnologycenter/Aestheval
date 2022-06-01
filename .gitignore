@@ -134,6 +134,7 @@ data/*/*
 !data/ava/dpchallenge_id_score.json
 !uncorrupted_images.json
 !AVA_data_official_test.csv
-
+runs
+ckpts
 #Files
 testing.ipynb

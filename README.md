@@ -27,5 +27,6 @@ Already processed files can be found under `data/`. This directory can be change
 
 
 ## Future work
- [] Optimize sequential sentiment score computation
- [] Add ViT training code
+ - [ ] Optimize sequential sentiment score computation
+ - [ ] Add ViT training code
+ - [ ] Standarize datasets

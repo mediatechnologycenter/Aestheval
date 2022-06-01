@@ -88,10 +88,11 @@ def collate_fn(batch):
     return images, labels
 
 
-def train(dataset_name, dataset, batch_size=64, epochs=100, early_stopping_patience=10):
+def train(dataset_name, dataset, batch_size=64, epochs=100, early_stopping_patience=5):
     ckpt_path = 'ckpts/NIMA/%s' % dataset_name
 
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(f"Running training on {device}")
     writer = SummaryWriter()
 
     dataset['train'].transform = transforms.Compose([
@@ -129,6 +130,8 @@ def train(dataset_name, dataset, batch_size=64, epochs=100, early_stopping_patie
             param_num += param.numel()
     print('Trainable params: %.2f million' % (param_num / 1e6))
 
+    # dataset['train'] = torch.utils.data.Subset(dataset['train'], range(10))
+    # dataset['validation'] = torch.utils.data.Subset(dataset['validation'], range(10))
     train_loader = DataLoader(dataset['train'],
                               batch_size=batch_size,
                               shuffle=True,
@@ -147,7 +150,7 @@ def train(dataset_name, dataset, batch_size=64, epochs=100, early_stopping_patie
     val_losses = []
     for epoch in range(epochs):
         batch_losses = []
-        for i, data in tqdm(enumerate(train_loader)):
+        for i, data in enumerate(tqdm(train_loader)):
             images = data[0].to(device)
             labels = data[1].to(device).float()
             outputs = model(images)
@@ -168,7 +171,8 @@ def train(dataset_name, dataset, batch_size=64, epochs=100, early_stopping_patie
 
         # do validation after each epoch
         batch_val_losses = []
-        for data in val_loader:
+        print("Running validation...")
+        for data in tqdm(val_loader):
             images = data[0].to(device)
             labels = data[1].to(device).float()
             with torch.no_grad():
@@ -208,7 +212,8 @@ def evaluate(dataset_name, dataset, batch_size=64):
         return (int(s[0]) if s else -1, f)
 
 
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(f"Running evaluation on {device}")
     ckpt_path = 'ckpts/NIMA/%s' % dataset_name
     filenames = glob.glob(ckpt_path+"/*.pth")
 
@@ -224,6 +229,7 @@ def evaluate(dataset_name, dataset, batch_size=64):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], 
             std=[0.229, 0.224, 0.225])])
 
+    # dataset = torch.utils.data.Subset(dataset, range(10))
     test_loader = DataLoader(dataset,
                              batch_size=batch_size,
                              shuffle=False,

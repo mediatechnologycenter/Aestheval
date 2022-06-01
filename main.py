@@ -1,6 +1,6 @@
 from aestheval.data.datautils.data_downloader import download_datasets
 from aestheval.text_prediction.sentiment_score import *
-# from aestheval.baselines.run_baseline import run
+from aestheval.baselines.run_baseline import run
 import configargparse
 
 def config_parser():
@@ -21,14 +21,16 @@ if __name__ == "__main__":
     
     if args.compute_sentiment_score:
         # sentiment_pccd(root_dir=args.data_path)
-        sentiment_reddit(root_dir=args.data_path)
-        sentiment_ava(root_dir=args.data_path)
-#    run('Reddit', 'nima')
-#    run('PCCD', 'nima')
+        # sentiment_reddit(root_dir=args.data_path)
+        # sentiment_ava(root_dir=args.data_path)
+        pass
+    run('Reddit', 'nima', args.data_path)
+    run('PCCD', 'nima', args.data_path)
+    run('AVA', 'nima', args.data_path)
 #    run('PCCD', 'mlsp')
     # run('Reddit', 'mlsp')
     # run('AVA', 'mlsp')
-    # run('AVA', 'nima')
+    
     # run('PCCD', 'vit')
     # run('Reddit', 'vit')
     # run('AVA', 'vit')
