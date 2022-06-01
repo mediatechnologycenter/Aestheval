@@ -6,11 +6,13 @@ from torchvision import transforms
 from PIL import Image
 from torch.utils.data import Dataset
 
+path = Path(os.path.dirname(__file__))
+pccd_files_path = Path(path.parent, 'PCCD')
+
 class PCCD(Dataset):
     def __init__(self,
                  split: str,
                  dataset_path: str = "data/PCCD",
-                 split_path: str = "aestheval/data/datasets/PCCD",
                  transform=None,
                  load_images: bool = True
                  ):
@@ -27,7 +29,7 @@ class PCCD(Dataset):
             split_file = Path(dataset_path, f"processed_{split}.json")
             self.processed = True
         else:
-            split_file = os.path.join(split_path, f"guru_{split.lower()}.json")
+            split_file = os.path.join(pccd_files_path, f"guru_{split.lower()}.json")
 
         with open(split_file, 'r') as f:
             data = json.load(f)
