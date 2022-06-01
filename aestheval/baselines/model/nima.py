@@ -264,9 +264,9 @@ def evaluate(dataset_name, dataset, batch_size=64):
     print("LCC =", lcc)
 
     with open(ckpt_path+"/results.txt", 'w') as f:
-        f.write("SRCC = {}".format(srcc))
-        f.write("MSE = {}".format(mse))
-        f.write("LCC = {}".format(lcc))
+        f.write("SRCC = {}\n".format(srcc))
+        f.write("MSE = {}\n".format(mse))
+        f.write("LCC = {}\n".format(lcc))
 
     torch.save({'gt_distr': gt_distr, 'pred_distr': pred_distr,
                 'gt': gt_distr, 'pred': pred_distr,
