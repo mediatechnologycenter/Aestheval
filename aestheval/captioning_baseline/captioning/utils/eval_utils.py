@@ -181,6 +181,7 @@ def eval_split(model, crit, loader, eval_kwargs={}):
         sents = utils.decode_sequence(model.vocab, seq)
 
         for k, sent in enumerate(sents):
+            import ipdb ; ipdb.set_trace()
             entry = {'image_id': data['infos'][k]['id'], 'caption': sent, 'perplexity': perplexity[k].item(), 'entropy': entropy[k].item()}
             if eval_kwargs.get('dump_path', 0) == 1:
                 entry['file_name'] = data['infos'][k]['file_path']

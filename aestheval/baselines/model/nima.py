@@ -15,10 +15,13 @@ import numpy as np
 import torch.optim as optim
 import torchvision.transforms as transforms
 
+from scipy import stats
 from tqdm import tqdm
+
 from torchvision.models import vgg16
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
+import sklearn.metrics as sm
 
 
 """Neural IMage Assessment model by Google"""
@@ -245,5 +248,26 @@ def evaluate(dataset_name, dataset, batch_size=64):
         predictions.append(output.cpu())
         groundtruths.append(labels)
 
-    torch.save({'gt': torch.cat(groundtruths),
-                'pred': torch.cat(predictions)}, ckpt_path+"/predictions.pth")
+    gt_distr = torch.cat(groundtruths)
+    pred_distr = torch.cat(predictions)
+
+    # Coherently with Eq. 1, we expect pos, neu, neg. Tensor's
+    # columns are neg, neu, pos, thus we flip the columns
+    gt = (3 - torch.sum(gt_distr.fliplr() * torch.arange(1,4), 1)) / 2
+    pred = (3 - torch.sum(pred_distr.fliplr() * torch.arange(1,4), 1)) / 2
+
+    srcc = stats.spearmanr(gt, pred)
+    print("SRCC =", srcc)
+    mse = round(sm.mean_squared_error(gt, pred), 4)
+    print("MSE =", mse)
+    lcc = stats.pearsonr(gt, pred)
+    print("LCC =", lcc)
+
+    with open(ckpt_path+"/results.txt", 'w') as f:
+        f.write("SRCC = {}\n".format(srcc))
+        f.write("MSE = {}\n".format(mse))
+        f.write("LCC = {}\n".format(lcc))
+
+    torch.save({'gt_distr': gt_distr, 'pred_distr': pred_distr,
+                'gt': gt_distr, 'pred': pred_distr,
+                }, ckpt_path+"/predictions.pth")

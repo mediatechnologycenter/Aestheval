@@ -173,6 +173,7 @@ def train(opt):
                 utils.set_lr(optimizer, opt.current_lr)
             # Load data from train split (0)
             data = loader.get_batch('train')
+            import ipdb ; ipdb.set_trace()
             print('Read data:', time.time() - start)
 
             torch.cuda.synchronize()
