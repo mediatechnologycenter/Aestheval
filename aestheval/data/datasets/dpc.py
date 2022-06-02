@@ -21,11 +21,12 @@ class DPC(AestheticsDataset):
         """
 
         AestheticsDataset.__init__(self, 
-            split,
-            dataset_path,
-            images_path,
-            transform,
-            load_images)
+            split=split,
+            dataset_path=dataset_path,
+            image_dir=images_path,
+            file_name='im_name',
+            transform=transform,
+            load_images=load_images)
 
         self.processed=False
 

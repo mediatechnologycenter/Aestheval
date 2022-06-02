@@ -24,11 +24,12 @@ class AVA(AestheticsDataset):
         image_dir = Path(dataset_path, "images")
 
         AestheticsDataset.__init__(self, 
-            split,
-            dataset_path,
-            image_dir,
-            transform,
-            load_images)
+            split=split,
+            dataset_path=dataset_path,
+            image_dir=image_dir,
+            file_name='im_name',
+            transform=transform,
+            load_images=load_images)
 
         score_file=os.path.join(ava_files_path, "dpchallenge_id_score.json")
         db_file=os.path.join(ava_files_path,"uncorrupted_images.json")

@@ -29,4 +29,4 @@ Already processed files can be found under `data/`. This directory can be change
 ## Future work
  - [ ] Optimize sequential sentiment score computation
  - [ ] Add ViT training code
- - [ ] Standarize datasets
+ - [ ] Standarize datasets: I don't like how the load of the processed dataset (with sentiment scores) is managed.

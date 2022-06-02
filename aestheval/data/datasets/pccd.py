@@ -5,6 +5,7 @@ import json
 from torchvision import transforms
 from PIL import Image
 from aestheval.data.datasets.aesthdataset import AestheticsDataset
+import ast
 
 path = Path(os.path.dirname(__file__))
 pccd_files_path = Path(path.parent, 'PCCD')
@@ -24,11 +25,12 @@ class PCCD(AestheticsDataset):
         
         image_dir = os.path.join(dataset_path, "images", "full")
         AestheticsDataset.__init__(self, 
-            split,
-            dataset_path,
-            image_dir,
-            transform,
-            load_images)
+            split=split,
+            dataset_path=dataset_path,
+            image_dir=image_dir,
+            file_name='im_name',
+            transform=transform,
+            load_images=load_images)
 
         self.processed=False
 
@@ -65,6 +67,14 @@ class PCCD(AestheticsDataset):
         for d in data:
             dic = {k: d[k] for k in self.selected_keys}
             dic['comments'] = [d[k] for k in self.attributes]
+            scores = []
+            for score in d['score']:
+                try:
+                    scores.append(ast.literal_eval(score))
+                except:
+                    # print("Malformed score, adding None")
+                    scores.append(None)
+            dic['score'] = scores
             if not self.processed:
                 dic['im_name'] = dic.pop('title') # Rename for readibility
             self.dataset.append(dic)

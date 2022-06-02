@@ -6,23 +6,24 @@ from pathlib import Path
 import os
 from PIL import Image
 
-def valid_image(img, im_path):
-    if img is None or img.size == 0:
-        print("Image {} cannot be read".format(str(im_path)))
-        print(img)
-        raise ValueError(f"Corrupted or missing image with path: {str(im_path)}")
+# def valid_image(img, im_path):
+#     if img is None or img.size == 0:
+#         print("Image {} cannot be read".format(str(im_path)))
+#         print(img)
+#         raise ValueError(f"Corrupted or missing image with path: {str(im_path)}")
 
-    if len(img.shape) == 2:
-        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+#     if len(img.shape) == 2:
+#         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
-    img = img.copy()
-    return img
+#     img = img.copy()
+#     return img
 
 class AestheticsDataset(torch.utils.data.Dataset, ABC):
     def __init__(self, 
         split,
         dataset_path,
         image_dir,
+        file_name,
         transform=None,
         load_images: bool = True,
         ):
@@ -38,6 +39,7 @@ class AestheticsDataset(torch.utils.data.Dataset, ABC):
         self.dataset_path = dataset_path
         self.split = split
         self.image_dir = image_dir
+        self.file_name = file_name
         self.transform = transform
         if transform is None:
             self.transform = transforms.ToTensor()
@@ -52,11 +54,10 @@ class AestheticsDataset(torch.utils.data.Dataset, ABC):
 
         data = self.dataset[idx]
         if self.load_images:
-            image_file = os.path.join(self.image_dir, data['im_name'])
-            im = cv2.imread(image_file)
-            im = valid_image(im, image_file)
-            im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+            image_file = os.path.join(self.image_dir, data[self.file_name])
+            im = Image.open(image_file).convert('RGB')
+            # im = valid_image(im, image_file)
             image = self.transform(im)
         else:
             image=None
-        return image, data['mean_score'] * 10 #x10 to scale it to [0,10]
+        return image, data 

@@ -41,11 +41,12 @@ class Reddit(AestheticsDataset):
         image_dir = dataset_path
         
         AestheticsDataset.__init__(self, 
-            split,
-            dataset_path,
-            image_dir,
-            transform,
-            load_images)
+            split=split,
+            dataset_path=dataset_path,
+            image_dir=image_dir,
+            file_name='im_paths',
+            transform=transform,
+            load_images=load_images)
 
         self.processed=False
 
@@ -79,16 +80,3 @@ class Reddit(AestheticsDataset):
             self.transform = transforms.ToTensor()
 
         self.is_train = True if split == 'TRAIN' else False
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, ind):
-        data = self.dataset[ind]
-        if self.load_images:
-            image_file = os.path.join(self.image_dir, data["im_paths"])
-            image = Image.open(image_file).convert('RGB')
-            image = self.transform(image)
-        else:
-            image = None
-        return image, data
