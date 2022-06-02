@@ -136,6 +136,8 @@ data/*/*
 !AVA_data_official_test.csv
 runs
 ckpts
+.vscode
+
 #Files
 testing.ipynb
 bsub.txt
