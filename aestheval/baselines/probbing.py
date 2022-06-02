@@ -9,10 +9,10 @@ from timm.data.transforms_factory import create_transform
 from tqdm import tqdm
 from scipy import stats
 import sklearn.metrics as sm
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import SGDRegressor
 import pandas as pd
 import json
-
+import numpy as np
 
 MODEL_NAMES = ['vit_base_patch16_224_in21k', 'vit_base_patch16_224', 'vit_deit_small_patch16_224', 'vit_small_patch16_224',
                  'vit_deit_tiny_patch16_224', 'vit_deit_base_patch16_224', 'vit_base_patch32_224', 'vit_large_patch16_224_in21k', 'vit_large_patch16_224']
@@ -50,10 +50,10 @@ def get_features(dataset, model, collate_fn):
             features = model.forward_features(images.to(device))
 
             images.detach()
-            all_features.append(features.cpu().detach())
+            all_features.append(features.detach().cpu().numpy())
             all_labels.append(labels)
 
-    return torch.cat(all_features).numpy(), torch.cat(all_labels).numpy()
+    return np.concatenate(all_features), torch.cat(all_labels).numpy()
 
 def get_metrics(labeller_score_list: torch.Tensor, network_score_list: torch.Tensor, verbose=True) -> dict:
     srcc = stats.spearmanr(labeller_score_list, network_score_list)
@@ -109,8 +109,9 @@ def run(dataset_name, model_name, root_dir, scoring='original'):
 
     # Perform logistic regression
     print("Fitting linear regressor...")
-    classifier = LinearRegression()
+    classifier = SGDRegressor()
     print(train_features.shape, train_labels.shape)
+    print(type(train_features), type(train_labels))
     classifier.fit(train_features, train_labels)
 
     # Evaluate using the logistic regression classifier

@@ -30,3 +30,4 @@ Already processed files can be found under `data/`. This directory can be change
  - [ ] Optimize sequential sentiment score computation
  - [ ] Add ViT training code
  - [ ] Standarize datasets: I don't like how the load of the processed dataset (with sentiment scores) is managed.
+ - [ ] Accuracy metrics is not really useful in the whole library, since it's arbitrarily defined and it should be defined differently for each dataset
