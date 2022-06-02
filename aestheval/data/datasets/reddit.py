@@ -30,7 +30,8 @@ class Reddit(AestheticsDataset):
                  split: str,
                  dataset_path: str = 'data/reddit/',
                  transform=None,
-                 load_images: bool = True):
+                 load_images: bool = True,
+                 min_words=0):
         """Create a text image dataset from a directory with congruent text and image names.
 
         Args:
@@ -39,14 +40,16 @@ class Reddit(AestheticsDataset):
         assert split in ["train", "test", "validation"], "Split must be one of those: 'train', 'test', 'validation'"
 
         image_dir = dataset_path
-        
+        self.dataset_name = 'reddit'
+
         AestheticsDataset.__init__(self, 
             split=split,
             dataset_path=dataset_path,
             image_dir=image_dir,
             file_name='im_paths',
             transform=transform,
-            load_images=load_images)
+            load_images=load_images,
+            min_words=min_words)
 
         self.processed=False
 
@@ -55,9 +58,12 @@ class Reddit(AestheticsDataset):
             self.processed = True
             with open(split_file, 'r') as f:
                 self.dataset = json.load(f)
+            
+            self.ids = []
             for data in self.dataset:
                 data["im_score"] = data['mean_score'] * 10 # x10 to set the scores between 0 and 10
                 data['comments']= data['first_level_comments_values']
+                self.ids.append(data['im_id'])
         else:
 
             datafile = os.path.join(dataset_path, "reddit_photocritique_image_comments.json")
@@ -67,7 +73,7 @@ class Reddit(AestheticsDataset):
             ids = pd.read_csv(Path(reddit_files_path, f"{split}_ids.csv"), header=None, names=['im_paths'])
             data = data[data['im_paths'].isin(ids['im_paths'])]
             data['im_id'] = data['im_paths'].apply(lambda x: x.split('submission_')[1].split('-')[0])                
-
+            self.ids = data['im_id'].tolist()
             self.dataset = json.loads(data.to_json(orient='records', indent=1))
 
         # The order of these attributes it's important to match with the order of scores
@@ -75,8 +81,6 @@ class Reddit(AestheticsDataset):
                          'use_of_camera', 'depth_of_field', 'color_lighting',
                          'focus']
 
-        self.transform = transform
-        if self.transform is None:
-            self.transform = transforms.ToTensor()
-
         self.is_train = True if split == 'TRAIN' else False
+
+        self.post_dataset_load()

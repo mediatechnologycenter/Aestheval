@@ -18,10 +18,12 @@ class AVA(AestheticsDataset):
         split,
         dataset_path = 'data/ava/',
         transform=None,
-        load_images: bool = True
+        load_images: bool = True,
+        min_words = 0
     ):
 
         image_dir = Path(dataset_path, "images")
+        self.dataset_name = 'ava'
 
         AestheticsDataset.__init__(self, 
             split=split,
@@ -29,7 +31,8 @@ class AVA(AestheticsDataset):
             image_dir=image_dir,
             file_name='im_name',
             transform=transform,
-            load_images=load_images)
+            load_images=load_images,
+            min_words=min_words)
 
         score_file=os.path.join(ava_files_path, "dpchallenge_id_score.json")
         db_file=os.path.join(ava_files_path,"uncorrupted_images.json")
@@ -66,6 +69,9 @@ class AVA(AestheticsDataset):
                 self.labels[image_name] = [score, challenge_id]
 
             self.preprocess_data()
+        
+        self.post_dataset_load()
+        
 
     def preprocess_data(self):
         if self.split == "train":
