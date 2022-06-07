@@ -7,6 +7,7 @@ def config_parser():
     parser.add_argument("--data_path", type=str, help="Data directory to download the datasets", default="data/")
     parser.add_argument("--download_data", action='store_true', help="Whether to download data", default=False)
     parser.add_argument("--compute_sentiment_score", action='store_true', help="Whether to compute the sentiment score", default=False)
+    parser.add_argument("--compute_informativeness_score", action='store_true', help="Whether to compute the informativeness score", default=False)
     parser.add_argument("--run_baseline", action='store_true', help="Whether to compute the sentiment score", default=False)
     parser.add_argument("--run_probbing", action='store_true', help="Whether to compute the sentiment score", default=False)
     parser.add_argument("--dataset_name", type=str, choices=['PCCD', 'Reddit', 'AVA'])
@@ -28,6 +29,12 @@ if __name__ == "__main__":
         sentiment_pccd(root_dir=args.data_path)
         sentiment_reddit(root_dir=args.data_path)
         sentiment_ava(root_dir=args.data_path)
+
+    if args.compute_informativeness_score:
+        from aestheval.text_prediction.compute_info_score import *
+        info_pccd(root_dir=args.data_path)
+        info_reddit(root_dir=args.data_path)
+        info_ava(root_dir=args.data_path)
 
     if args.run_baseline:
         from aestheval.baselines.run_baseline import run

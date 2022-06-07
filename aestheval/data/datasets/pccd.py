@@ -16,7 +16,8 @@ class PCCD(AestheticsDataset):
                  dataset_path: str = "data/PCCD",
                  transform=None,
                  load_images: bool = True,
-                 min_words=0
+                 min_words=0,
+                 informativeness=False
                  ):
         """Create a text image dataset from a directory with congruent text and image names.
 
@@ -38,8 +39,14 @@ class PCCD(AestheticsDataset):
 
         self.processed=False
 
-        if os.path.exists(Path(dataset_path, f"processed_{split}.json")):
-            split_file = Path(dataset_path, f"processed_{split}.json")
+        processed_file_name = 'processed_'
+        if informativeness:
+            processed_file_name = 'processed_info_' 
+        
+        print("Using path: ", Path(self.dataset_path, f"{processed_file_name}{split}.json"))
+
+        if os.path.exists(Path(self.dataset_path, f"{processed_file_name}{split}.json")):
+            split_file = Path(self.dataset_path, f"{processed_file_name}{split}.json")
             self.processed = True
         else:
             split_file = os.path.join(pccd_files_path, f"guru_{split.lower()}.json")
@@ -64,7 +71,7 @@ class PCCD(AestheticsDataset):
 
         #If sentiment is already in data
         if "sentiment" in data[0].keys():
-            self.selected_keys = self.selected_keys + ["sentiment", 'mean_score', 'stdev_score','number_of_scores']
+            self.selected_keys = self.selected_keys + ["sentiment", 'mean_score', 'stdev_score','number_of_scores', 'info_scores']
         
         self.ids = []
         self.dataset = []
