@@ -36,8 +36,7 @@ def info_pccd(root_dir):
 
     unigram_scores = dict(zip(list(unigram_dictionary.keys()), np.array(list(unigram_dictionary.values()))/float(np.sum(list(unigram_dictionary.values())))))
     bigram_scores = dict(zip(list(bigram_dictionary.keys()), np.array(list(bigram_dictionary.values()))/float(np.sum(list(bigram_dictionary.values())))))
-    # print ('\n'.join([i + '\t'+ ("{:0.1e}".format(j)) for i,j in Counter(unigram_scores).most_common()]))
-    # print ('\n'.join([i + '\t' + ("{:0.1e}".format(j)) for i,j in Counter(bigram_scores).most_common()]))
+
 
     for name, dataset in pccd_dataset.items():
         for img, data in tqdm(dataset):
@@ -74,8 +73,6 @@ def info_reddit(root_dir):
 
     unigram_scores = dict(zip(list(unigram_dictionary.keys()), np.array(list(unigram_dictionary.values()))/float(np.sum(list(unigram_dictionary.values())))))
     bigram_scores = dict(zip(list(bigram_dictionary.keys()), np.array(list(bigram_dictionary.values()))/float(np.sum(list(bigram_dictionary.values())))))
-    # print ('\n'.join([i + '\t'+ ("{:0.1e}".format(j)) for i,j in Counter(unigram_scores).most_common()]))
-    # print ('\n'.join([i + '\t' + ("{:0.1e}".format(j)) for i,j in Counter(bigram_scores).most_common()]))
 
     for name, dataset in reddit_dataset.items():
         for img, data in tqdm(dataset):
@@ -110,8 +107,6 @@ def info_ava(root_dir):
     
     unigram_scores = dict(zip(list(unigram_dictionary.keys()), np.array(list(unigram_dictionary.values()))/float(np.sum(list(unigram_dictionary.values())))))
     bigram_scores = dict(zip(list(bigram_dictionary.keys()), np.array(list(bigram_dictionary.values()))/float(np.sum(list(bigram_dictionary.values())))))
-    # print ('\n'.join([i + '\t'+ ("{:0.1e}".format(j)) for i,j in Counter(unigram_scores).most_common()]))
-    # print ('\n'.join([i + '\t' + ("{:0.1e}".format(j)) for i,j in Counter(bigram_scores).most_common()]))
 
     for name, dataset in ava_dataset.items():
         for img, data in tqdm(dataset):

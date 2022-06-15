@@ -9,8 +9,6 @@ code adapted from https://github.com/V-Sense/Aesthetic-Image-Captioning-ICCVW-20
 }
 """
 
-
-
 '''
 1. remove non-english captions
 2. Truncates woooooooow to woow, and what!!!!!!!!!!!!!! to what!
@@ -77,22 +75,9 @@ replace_char_map = {
     
 }
 
-
-# input_json = "CLEAN_AVA_FULL_COMMENTS.json"
-# non_eng_f = io.open('Logs/Non_English.txt','w', encoding = 'utf-8')
-# unigram_f = io.open('Logs/Unigrams.txt','w', encoding = 'utf-8')
-# bigram_f = io.open('Logs/Bigrams.txt','w', encoding = 'utf-8')
-# norm_unigram_f = io.open('Logs/Normalized_Unigrams.txt','w', encoding = 'utf-8')
-# norm_bigram_f = io.open('Logs/Normalized_Bigrams.txt','w', encoding = 'utf-8')
-# sub_discarded_f = io.open('Logs/Sub_Discarded.txt','w', encoding = 'utf-8')
-# ob_discarded_f = io.open('Logs/Ob_Discarded.txt','w', encoding = 'utf-8')
-# accepted_f = io.open('Logs/Accepted.txt','w', encoding = 'utf-8')
-
-# data = json.load(io.open(input_json, encoding = 'utf-8'))
 print_flag_array = [True] * 2 + [False] * 8
 shuffle(print_flag_array)
-# imgs = data['images'][::4]
-# original_count = np.sum([len(img['sentences']) for img in imgs])
+
 unigram_dictionary = {}
 bigram_dictionary = {}
 
@@ -101,9 +86,6 @@ nltk.download('averaged_perceptron_tagger')
 nltk.download('wordnet')
 nltk.download('omw-1.4')
 
-subjectivity_threshold = 120
-objectivity_threshold = 20
-#pdb.set_trace()
 
 def reduce_lengthening_word(text):
     pattern = re.compile(r"(.)\1{2,}")
@@ -177,25 +159,6 @@ def all_the_steps(comment: "dict[str, str]", unigram_dictionary, bigram_dictiona
               return False
       else:
           return False
-          
-def split_delimiters_all_the_steps(comment):
-      #pdb.set_trace()
-      punc_dig_free_comment = clean_string(comment)
-      multiple_punc_removed = strip_consecutive_punctutaion(punc_dig_free_comment)
-      reduced_comment = reduce_lengthening_comment(multiple_punc_removed)    
-      split_comments_clean = re.split("!|\\?|\\.", reduced_comment['clean'])
-      comments = []
-      for split_comment in split_comments_clean:
-          comments.append({'clean':split_comment})
-      tokenized_comments = map(tokenize, comments)
-      non_lame_comments = filter(remove_dpc, tokenized_comments)
-      new_non_lame_comments = []
-      for non_lame_comment in non_lame_comments:
-          update_dicts(non_lame_comment)
-          if len(non_lame_comment['unigrams']) != 0 or len(non_lame_comment['bigrams']) != 0:
-              new_non_lame_comments.append(non_lame_comment)
-      #pdb.set_trace()    
-      return new_non_lame_comments
       
 def remove_dpc(comment: "dict[str, str]"):
     def lemmatize(pos):
@@ -261,79 +224,3 @@ def compute_informativeness_score(comment: "dict[str, str]", unigram_scores, big
                 bigram_score)/2)), comment['clean'])
 
     return informativeness_score
-
-def filter_commenst_sub_dis(comment):
-    global unit_count_threshold, subjectivity_threshold, objectivity_threshold, unigram_dictionary, bigram_dictionary, print_flag_array
-    unigram_score = 1.0
-    bigram_score = 1.0
-    too_objective = True
-    too_subjective = True
-    print_flag = print_flag_array[np.random.randint(10)]
-
-    for unigram in comment['unigrams']:
-        unigram_score *= unigram_scores[unigram[0]]
-    for bigram in comment['bigrams']:
-        bigram_score *= bigram_scores[bigram[0][0] +'_' +bigram[1][0]]
-        
-    if -np.log(unigram_score * bigram_score)/2 <= subjectivity_threshold:
-        too_subjective = False
-    if -np.log(unigram_score * bigram_score)/2 >= objectivity_threshold and len(comment['tokens']) >= 5:
-        too_objective = False
-
-    final_flag = not (too_subjective or too_objective )
-
-    if not final_flag:
-        if too_objective and print_flag:
-            print(("{:0.1e}".format(bigram_score)), \
-            ("{:0.1e}".format(unigram_score)), \
-            ("{:0.1f}".format(-np.log(unigram_score * \
-            bigram_score)/2)) , comment['clean'], file = ob_discarded_f)
-        else :
-            if print_flag:
-                print(("{:0.1e}".format(bigram_score)),\
-                ("{:0.1e}".format(unigram_score)), \
-                ("{:0.1f}".format(-np.log(unigram_score * \
-                bigram_score)/2)), comment['clean'], file = sub_discarded_f)
-    else:
-        if print_flag:
-            print(("{:0.1e}".format(bigram_score)),\
-            ("{:0.1e}".format(unigram_score)),\
-            ("{:0.1f}".format(-np.log(unigram_score * \
-                bigram_score)/2)), comment['clean'], file = accepted_f)
-    return final_flag
-
-
-#pdb.set_trace()
-# for count, img in enumerate(tqdm(imgs,  position=0, leave=True, unit=' images')):
-#     comments = img['sentences']
-#     #for splitting comments based on delimiters
-#     #split_comments = list(itertools.chain.from_iterable(map(split_delimiters_all_the_steps, comments)))
-#     #img['sentences'] = split_comments
-#     reduced_tokenized_comments = filter(all_the_steps, comments)
-#     img['sentences'] = reduced_tokenized_comments
-# print ('\n'.join([i + '\t'+ str(j) for i,j in Counter(unigram_dictionary).most_common()]), file = unigram_f)
-# print ('\n'.join([i + '\t' + str(j) for i,j in Counter(bigram_dictionary).most_common()]), file = bigram_f)
-
-
-# unigram_scores = dict(zip(unigram_dictionary.keys(), np.array(unigram_dictionary.values())/float(np.sum(unigram_dictionary.values()))))
-# bigram_scores = dict(zip(bigram_dictionary.keys(), np.array(bigram_dictionary.values())/float(np.sum(bigram_dictionary.values()))))
-# print ('\n'.join([i + '\t'+ ("{:0.1e}".format(j)) for i,j in Counter(unigram_scores).most_common()]), file = norm_unigram_f)
-# print ('\n'.join([i + '\t' + ("{:0.1e}".format(j)) for i,j in Counter(bigram_scores).most_common()]), file = norm_bigram_f)
-
-
-# count_after_basic_cleaning = np.sum([len(img['sentences']) for img in imgs])
-# #pdb.set_trace()
-# for count, img in enumerate(tqdm(imgs,  position=0, leave=True, unit=' images')):
-#     comments = img['sentences']
-#     new_comments = filter(filter_commenst_sub_dis, comments)
-#     img['sentences'] = new_comments
-# imgs = [img for img in imgs if len(img['sentences']) > 0]
-# db = {}
-# db['dataset'] = 'AVA'
-# db['images'] = imgs
-# count_after_full_cleaning = np.sum([len(img['sentences']) for img in imgs])
-# print ("First : %d\nSecond : %d\nThird : %d\nPercent Removed : %0.2f"\
-# %(original_count, count_after_basic_cleaning, count_after_full_cleaning,(1 - count_after_full_cleaning/float(original_count))*100))
-# pdb.set_trace()
-# #f = io.open('CLEAN_AVA_FULL_AFTER_SUBJECTIVE_CLEANING.json','w', encoding = 'utf-8')
-# #f.write(unicode(json.dumps(db, ensure_ascii=False)))
