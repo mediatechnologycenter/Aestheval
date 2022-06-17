@@ -8,6 +8,7 @@ from PIL import Image
 from aestheval.text_prediction.predictor import Predictor
 import configargparse
 import os
+import torch
 
 tqdm.pandas()
 dirname = os.path.dirname(__file__)
@@ -268,7 +269,7 @@ if __name__ == "__main__":
     print(df.shape)
 
 
-    # Add person and shot predictions
+    # Add person predictions
     person_ids = pd.read_csv(os.path.join(dirname,'person_ids.csv'), header=None, names=['ids'])
     person_ids = person_ids.ids.apply(lambda x: x.split('_')[1].split('-')[0])
     pids = list(set(df.id).intersection(set(person_ids)))
@@ -276,12 +277,32 @@ if __name__ == "__main__":
 
     print(df.shape)
 
+
+    # Add shot predictions
     with open(os.path.join(dirname, 'shot_pred.json'), 'r') as f:
         shot_data = json.load(f)
     shot_data = {k.split('submission_')[1].split('-')[0]: v for k,v in shot_data.items()}
     shot_df = pd.DataFrame.from_dict(shot_data, orient='index').reset_index()
     shot_df['max_shot_pred'] = shot_df[['ECS','CS', 'MS', 'FS', 'LS']].idxmax(axis=1)
     df = df.merge(shot_df, left_on='id', right_on='index').drop(columns=['index'])
+
+    print(df.shape)
+
+    # Add composition predictions
+    comp = torch.load(os.path.join(dirname,'output_composition.pth'))
+    composition = pd.DataFrame(comp['prob'].numpy(), columns=comp['classes'])
+    composition['max_predicted_composition'] = composition.idxmax(axis=1)
+    composition = pd.concat([composition, pd.DataFrame({'im_paths': comp['fn']})], axis=1)
+    df = df.merge(composition, on='im_paths')
+
+    print(df.shape)
+
+    # Add semantic prediction
+    sem = torch.load(os.path.join(dirname,'output_semantics.pth'))
+    semantics = pd.DataFrame(sem['prob'].numpy(), columns=sem['classes'])
+    semantics['max_predicted_semantic'] = semantics.idxmax(axis=1)
+    semantics = pd.concat([semantics, pd.DataFrame({'im_paths': sem['fn']})], axis=1)
+    df = df.merge(semantics, on='im_paths')
 
     print(df.shape)
 

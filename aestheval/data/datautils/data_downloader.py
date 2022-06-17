@@ -58,7 +58,7 @@ def download_datasets(data_path, dataset):
             dataset = []
             for k,v in data.items():
                 dataset.append(
-                    {'im_id': k,
+                    {'im_name': k,
                     'comments': v, 
                     'attribute': attribute}
                 )

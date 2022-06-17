@@ -4,25 +4,38 @@ import os
 import json
 from torchvision import transforms
 from PIL import Image
-from torch.utils.data import Dataset
+from aestheval.data.datasets.aesthdataset import AestheticsDataset
+import ast
 
 path = Path(os.path.dirname(__file__))
 pccd_files_path = Path(path.parent, 'PCCD')
 
-class PCCD(Dataset):
+class PCCD(AestheticsDataset):
     def __init__(self,
                  split: str,
                  dataset_path: str = "data/PCCD",
                  transform=None,
-                 load_images: bool = True
+                 load_images: bool = True,
+                 min_words=0
                  ):
         """Create a text image dataset from a directory with congruent text and image names.
 
         Args:
             folder (str): Folder containing images and text files matched by their paths' respective "stem"
         """
-        self.load_images=load_images
-        dataset_path = Path(dataset_path)
+        
+        image_dir = os.path.join(dataset_path, "images", "full")
+        self.dataset_name = 'pccd'
+
+        AestheticsDataset.__init__(self, 
+            split=split,
+            dataset_path=dataset_path,
+            image_dir=image_dir,
+            file_name='im_name',
+            transform=transform,
+            load_images=load_images, 
+            min_words=min_words)
+
         self.processed=False
 
         if os.path.exists(Path(dataset_path, f"processed_{split}.json")):
@@ -34,7 +47,7 @@ class PCCD(Dataset):
         with open(split_file, 'r') as f:
             data = json.load(f)
 
-        self.image_folder = os.path.join(dataset_path, "images", "full")
+        
         
         # The order of these attributes it's important to match with the order of scores
         self.attributes = ['general_impression', 'subject_of_photo', 'composition',
@@ -53,30 +66,24 @@ class PCCD(Dataset):
         if "sentiment" in data[0].keys():
             self.selected_keys = self.selected_keys + ["sentiment", 'mean_score', 'stdev_score','number_of_scores']
         
-        
+        self.ids = []
         self.dataset = []
         for d in data:
             dic = {k: d[k] for k in self.selected_keys}
+            dic['comments'] = [d[k] for k in self.attributes]
+            scores = []
+            for score in d['score']:
+                try:
+                    scores.append(ast.literal_eval(score))
+                except:
+                    # print("Malformed score, adding None")
+                    scores.append(None)
+            dic['score'] = scores
             if not self.processed:
                 dic['im_name'] = dic.pop('title') # Rename for readibility
+            self.ids.append(dic['im_name'])
             self.dataset.append(dic)
                 
-        self.transform = transform
-        if transform is None:
-            self.transform = transforms.ToTensor()
         self.is_train = True if split.lower() == 'train' else False
 
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, ind):
-        data = self.dataset[ind]
-
-        if self.load_images:
-            image_file = os.path.join(self.image_folder, data['im_name'])
-            image = Image.open(image_file).convert('RGB')
-            image = self.transform(image)
-        else:
-            image=None
-
-        return image, data
+        self.post_dataset_load()
