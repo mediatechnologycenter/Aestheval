@@ -1,3 +1,0 @@
-[submodule "aestheval/captioning_baselines/BLIP"]
-	path = aestheval/captioning_baselines/BLIP
-	url = https://github.com/salesforce/BLIP.git
