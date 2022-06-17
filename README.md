@@ -1,6 +1,6 @@
 # aestheval
 
-This repo allows make easy to access and process different datasets used usually for aesthetic assessment methods, as well as the newly introducced Reddit Photo Critique Dataset.
+This repo allows make easy to access and process different datasets used usually for aesthetic assessment methods, as well as the newly introduced Reddit Photo Critique Dataset.
 
 ## Get Reddit dataset
 Zenodo: https://zenodo.org/record/6656802#.YqyS6xuxWhA
