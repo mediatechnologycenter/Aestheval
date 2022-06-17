@@ -20,7 +20,8 @@ class AVA(AestheticsDataset):
         transform=None,
         load_images: bool = True,
         min_words = 0,
-        informativeness=False
+        informativeness=False,
+        min_info_score=0
     ):
 
         image_dir = Path(dataset_path, "images")
@@ -33,7 +34,8 @@ class AVA(AestheticsDataset):
             file_name='im_name',
             transform=transform,
             load_images=load_images,
-            min_words=min_words)
+            min_words=min_words,
+            min_info_score=min_info_score)
 
         score_file=os.path.join(ava_files_path, "dpchallenge_id_score.json")
         db_file=os.path.join(ava_files_path,"uncorrupted_images.json")

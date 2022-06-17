@@ -32,7 +32,8 @@ class Reddit(AestheticsDataset):
                  transform=None,
                  load_images: bool = True,
                  min_words=0, 
-                 informativeness=False):
+                 informativeness=False,
+                 min_info_score=0):
         """Create a text image dataset from a directory with congruent text and image names.
 
         Args:
@@ -50,7 +51,8 @@ class Reddit(AestheticsDataset):
             file_name='im_paths',
             transform=transform,
             load_images=load_images,
-            min_words=min_words)
+            min_words=min_words,
+            min_info_score=min_info_score)
 
         self.processed=False
 

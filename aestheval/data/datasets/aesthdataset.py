@@ -26,7 +26,8 @@ class AestheticsDataset(torch.utils.data.Dataset, ABC):
         file_name,
         transform=None,
         load_images: bool = True,
-        min_words=0
+        min_words=0,
+        min_info_score=0
         ):
         """
         Args:
@@ -43,6 +44,7 @@ class AestheticsDataset(torch.utils.data.Dataset, ABC):
         self.file_name = file_name
         self.transform = transform
         self.min_words = min_words
+        self.min_info_score = min_info_score
         if transform is None:
             self.transform = transforms.ToTensor()
         
@@ -53,20 +55,23 @@ class AestheticsDataset(torch.utils.data.Dataset, ABC):
         assert self.dataset_name, "Dataset name is missing"
         assert self.ids, "ids were loaded incorrectly"
 
-        # Filter dataset by words and add dataset name at sample level
+        # Filter dataset by words and info score and add dataset name at sample level
         dataset = []
         for data in self.dataset:
-            indexed_comments = [(k, x) for k, x in zip(data['sentiment'], data['comments']) if len(x.split()) > self.min_words] #Get only the comments with at least `self.min_words` words
+            indexed_comments = [(k, x, info_score) for k, x, info_score in zip(data['sentiment'], data['comments'], data['info_scores']) if (len(x.split()) > self.min_words) and (info_score > self.min_info_score)] #Get only the comments with at least `self.min_words` words
             comments = []
             sentiments = {}
+            info_scores = []
 
-            for i, (idx, comment) in enumerate(indexed_comments):
+            for i, (idx, comment, i_score) in enumerate(indexed_comments):
                 comments.append(comment)
+                info_scores.append(i_score)
                 sentiments[i] = data['sentiment'][idx]
             
             if len(comments):
                 data['comments'] = comments
                 data['sentiment'] = sentiments
+                data['info_scores'] = info_scores
                 data['dataset_name'] = self.dataset_name
                 dataset.append(data)
 
