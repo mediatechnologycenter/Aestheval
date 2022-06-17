@@ -19,7 +19,9 @@ class AVA(AestheticsDataset):
         dataset_path = 'data/ava/',
         transform=None,
         load_images: bool = True,
-        min_words = 0
+        min_words = 0,
+        informativeness=False,
+        min_info_score=0
     ):
 
         image_dir = Path(dataset_path, "images")
@@ -32,16 +34,20 @@ class AVA(AestheticsDataset):
             file_name='im_name',
             transform=transform,
             load_images=load_images,
-            min_words=min_words)
+            min_words=min_words,
+            min_info_score=min_info_score)
 
         score_file=os.path.join(ava_files_path, "dpchallenge_id_score.json")
         db_file=os.path.join(ava_files_path,"uncorrupted_images.json")
         metadata_file=os.path.join(ava_files_path,"AVA_data_official_test.csv")
 
         self.processed=False
-
-        if os.path.exists(Path(self.dataset_path, f"processed_{split}.json")):
-            split_file = Path(self.dataset_path, f"processed_{split}.json")
+        processed_file_name = 'processed_'
+        if informativeness:
+            processed_file_name = 'processed_info_'
+        print("Using path: ", Path(self.dataset_path, f"{processed_file_name}{split}.json"))
+        if os.path.exists(Path(self.dataset_path, f"{processed_file_name}{split}.json")):
+            split_file = Path(self.dataset_path, f"{processed_file_name}{split}.json")
             self.processed = True
             with open(split_file, 'r') as f:
                 self.dataset = json.load(f)
