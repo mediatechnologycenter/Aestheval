@@ -30,13 +30,20 @@ pip install -e .
 
 ### 2. Download datasets
 
+From __Zenodo:__ https://zenodo.org/record/6656802#.YqyS6xuxWhA
+
+Using automated scripts (work in progress):
 ```
 python main.py --download_data
 ```
 
 ### 3. Process Reddit dataset
 
-python aestheval/data/reddit/prepare_dataset.py --only_predictions  # Reads the provided dataframe, the original downloaders will be provided soon
+```
+python aestheval/data/reddit/prepare_dataset.py --only_predictions  # Reads the provided dataframe, the dataset downloaders will be provided soon
+```
+
+Use the `--reddit_dir` argument to set the directory where you downloaded ``reddit_photocritique_posts.pkl`` file. Default is `data/`
 
 ### 4. Predict sentiment of comments and compute informativeness score
 
@@ -46,7 +53,7 @@ On PCCD, AVA and Reddit (takes a while)
 python main.py --compute_sentiment_score --compute_informativeness_score
 ```
 
-Already processed files can be found under `data/`. This directory can be changed using the `--data_path` argument
+Already processed files can be found under `data/`. This directory can be changed using the `--data_path` argument.
 
 
 
@@ -61,13 +68,3 @@ Already processed files can be found under `data/`. This directory can be change
     primaryClass={cs.CV}
 }
 ```
-
-## Future work
- - [ ] Optimize sequential sentiment score computation
- - [ ] Add ViT training code
- - [ ] Standarize datasets: I don't like how the load of the processed dataset (with sentiment scores) is managed.
- - [ ] Accuracy metrics is not really useful in the whole library, since it's arbitrarily defined and it should be defined differently for each dataset
- - [ ] Upload aesthetic aspects classifier
- - [ ] Filtering by num words should be improved
- - [ ] Integrate informativeness score properly
- - [ ] Add datasets downloaders

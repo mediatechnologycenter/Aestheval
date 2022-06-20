@@ -15,7 +15,7 @@ dirname = os.path.dirname(__file__)
 
 def config_parser():
     parser = configargparse.ArgumentParser(description="Training script")
-    parser.add_argument("--reddit_dir", type=str, help="Data directory", default='/media/data-storage/datasets/reddit/')
+    parser.add_argument("--reddit_dir", type=str, help="Data directory", default='data/')
     parser.add_argument("--only_predictions", action='store_true',default=False, help='Dataframe is already ready, run only predictions.')
     parser.add_argument("--no_attribute_prediction", action='store_false',default=True, help='Attribute prediction')
     parser.add_argument("--no_sentiment_prediction", action='store_false', default=True,help='sentiment_prediction')
