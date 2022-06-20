@@ -50,6 +50,14 @@ Already processed files can be found under `data/`. This directory can be change
 
 
 ## Cite
+@misc{nieto2022understanding,
+    title={Understanding Aesthetics with Language: A Photo Critique Dataset for Aesthetic Assessment},
+    author={Daniel Vera Nieto and Luigi Celona and Clara Fernandez-Labrador},
+    year={2022},
+    eprint={2206.08614},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
+}
 
 ## Future work
  - [ ] Optimize sequential sentiment score computation
