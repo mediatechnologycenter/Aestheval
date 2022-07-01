@@ -2,7 +2,7 @@
 
 This repo allows make easy to access and process different datasets used usually for aesthetic assessment methods, as well as the newly introduced Reddit Photo Critique Dataset.
 
-## Get Reddit dataset
+## Get Reddit PhotoCritique Dataset
 __Zenodo:__ https://zenodo.org/record/6656802#.YqyS6xuxWhA
 
 __HF datasets:__ Coming soon...
@@ -21,8 +21,6 @@ Files in the dataset:
 
 ### 1. Create environment
 
-TODO: Improve env setup
-
 ```
 conda env create -f environment.yml
 pip install -e .
@@ -32,7 +30,7 @@ pip install -e .
 
 From __Zenodo:__ https://zenodo.org/record/6656802#.YqyS6xuxWhA
 
-Using automated scripts (work in progress):
+Using automated scripts (WIP):
 ```
 python main.py --download_data
 ```
@@ -53,8 +51,17 @@ On PCCD, AVA and Reddit (takes a while)
 python main.py --compute_sentiment_score --compute_informativeness_score
 ```
 
-Already processed files can be found under `data/`. This directory can be changed using the `--data_path` argument.
+Already processed files can be found under `data/`. This directory can be changed using the `--data_path` argument. This step produces the files you downloaded from Zenodo:
+- ``processed_info_test.json`` 
+- ``processed_info_train.json`` 
+- ``processed_info_validation.json``
 
+## Repo structure (WIP)
+
+The repo is structured as follows:
+- `EDAs`: Exploratory Data Analysis of AVA, DPC, PCCD and RPCD, as well as the concatenation of them all.
+- `aestheval`: Library with the data utils to download, load and process data; as well with the baselines used in this project.
+- `results`: Results of the expeeriments with Aesthetic ViT, ViT + Linear probe and NIMA.
 
 
 ## Cite
