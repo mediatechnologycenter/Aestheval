@@ -28,20 +28,15 @@ pip install -e .
 
 ### 2. Download datasets
 
-From __Zenodo:__ https://zenodo.org/record/6656802#.YqyS6xuxWhA
-
-Using automated scripts (WIP):
-```
-python main.py --download_data
-```
+Follow the README in the directory `data/` to download at least the images from Reddit.
 
 ### 3. Process Reddit dataset
 
 ```
-python aestheval/data/reddit/prepare_dataset.py --only_predictions  # Reads the provided dataframe, the dataset downloaders will be provided soon
+python aestheval/data/reddit/prepare_dataset.py --only_predictions  # Reads the provided dataframe.
 ```
 
-Use the `--reddit_dir` argument to set the directory where you downloaded ``reddit_photocritique_posts.pkl`` file. Default is `data/`
+Use the `--reddit_dir` argument to set the directory where you downloaded ``reddit_photocritique_posts.pkl`` file. Default is `data/`. If posts and comments were not downloaded before, not setting --only_predictions argument will make the script to throw erros.
 
 ### 4. Predict sentiment of comments and compute informativeness score
 

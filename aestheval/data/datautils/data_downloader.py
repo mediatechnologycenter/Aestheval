@@ -5,23 +5,39 @@ import zipfile
 import subprocess
 import json 
 import shutil
+import aestheval.data.datautils.reddit_scraper as reddit_scraper
 
 def config_parser():
     parser = configargparse.ArgumentParser(description="Downloader script")   
     # dataset options
     parser.add_argument("--data_path", type=str, help="Data directory to download the datasets", default="data/")
     parser.add_argument("--dataset", type=str, choices=["ava", "all", "reddit", "pccd", "dpc"], default=["dpc",], nargs="+", help="Dataset(s) to download.")
+
     return parser
 
-def download_datasets(data_path, dataset):
+def download_datasets(data_path:str , dataset: str, args):
     
+    if not os.path.exists(data_path):
+        os.mkdir(data_path)
+    
+    dataset = dataset.lower()
+
     if 'all' in dataset:
         dataset = ["ava", "all", "reddit", "pccd", "dpc"]
 
+    if "reddit" in dataset:
+        dataset_path= os.path.join(data_path, 'RPCD/')
+        if not os.path.exists(dataset_path):
+            os.mkdir(dataset_path)
+
+        print("Scraping all data may take a while (several hours)")
+        if not args.only_images:
+            reddit_scraper.scrape_posts(dataset_path)
+            reddit_scraper.scrape_comments(dataset_path)
+        reddit_scraper.scrape_images(dataset_path)
+
     if "pccd" in dataset:
         
-        if not os.path.exists(data_path):
-            os.mkdir(data_path)
         output_file= os.path.join(data_path, 'PCCD.zip')
         
         url = "https://drive.google.com/file/d/1hap2UGI9XV5XmxKOo54wZW30OXbqNyo8/view"
@@ -76,7 +92,7 @@ if __name__ == "__main__":
     parser = config_parser()
     args = parser.parse_args()
 
-    download_datasets(data_path=args.data_path, dataset = args.dataset)
+    download_datasets(data_path=args.data_path, dataset = args.dataset, args=args)
     
 
 

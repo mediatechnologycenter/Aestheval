@@ -15,7 +15,7 @@ dirname = os.path.dirname(__file__)
 
 def config_parser():
     parser = configargparse.ArgumentParser(description="Training script")
-    parser.add_argument("--reddit_dir", type=str, help="Data directory", default='data/')
+    parser.add_argument("--reddit_dir", type=str, help="Data directory", default='data/RPCD')
     parser.add_argument("--only_predictions", action='store_true',default=False, help='Dataframe is already ready, run only predictions.')
     parser.add_argument("--no_attribute_prediction", action='store_false',default=True, help='Attribute prediction')
     parser.add_argument("--no_sentiment_prediction", action='store_false', default=True,help='sentiment_prediction')
@@ -25,10 +25,10 @@ def config_parser():
 
 # Method to read comment file given a submission by id
 def read_comments_file(submission_id: str, year:str, subreddit:str):
-    dirpath = root_dir + str(year)
-    subredditdirpath = dirpath + '/' + subreddit + '/comments'
+    dirpath = os.path.join(root_dir,str(year))
+    subredditdirpath = os.path.join(dirpath, subreddit, 'comments')
     submission_comments_csv_path = str(year) + '-' + subreddit + '-submission_' + submission_id + '-comments.csv'
-    submission_comments_path = subredditdirpath + '/' + submission_comments_csv_path
+    submission_comments_path = os.path.join(subredditdirpath,submission_comments_csv_path)
     return pd.read_csv(submission_comments_path, index_col=None, header=0)
 
 def load_reddit_dataset(subreddit_submissions):
@@ -107,17 +107,17 @@ def generate_comments_csv(comments, dataframe_path="raw_reddit_photocritique_com
     comments_df.to_csv(dataframe_path, index=False)
 
 def image_exists(root_data, year, id):
-    paths = [os.path.join(root_data,f"{str(year)}/photocritique/images/",f"{str(year)}-photocritique-submission_{id}-image.{extension}") 
+    paths = [os.path.join(root_data,f"{str(year)}/photocritique/images/",f"{year}-photocritique-submission_{id}-image.{extension}") 
                 for extension in ['jpeg', 'jpg', 'png']]
     return any([os.path.exists(path) for path in paths])
 
 def get_image_path(root_data, year, id):
-    paths = [os.path.join(root_data,f"{str(year)}/photocritique/images/",f"{str(year)}-photocritique-submission_{id}-image.{extension}") 
+    paths = [os.path.join(root_data,f"{str(year)}/photocritique/images/",f"{year}-photocritique-submission_{id}-image.{extension}") 
                 for extension in ['jpeg', 'jpg', 'png']]
     res = [path for path in paths if os.path.exists(path)]
 
     if res:
-        return res[0].split('reddit')[1][1:]
+        return res[0].split('RPCD')[1][1:]
     return None
 
 def filter_bad_images(root_data, fn, edge_lenght_required=256):
@@ -230,7 +230,8 @@ if __name__ == "__main__":
     # Set data root directory and get all submissions files.
     root_dir = args.reddit_dir
     
-    submissions_dataframes = glob.glob(f'{root_dir}*/*/*.csv', recursive=True)
+    submissions_dataframes = glob.glob(f'{root_dir}/*/*/*.csv', recursive=True)
+    print(submissions_dataframes)
 
     # Select which subreddits we want to analyze. We only have images of the photocritique subreddit for the moment.
     subreddits = ["photocritique"]
