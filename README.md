@@ -3,7 +3,8 @@
 This repo allows make easy to access and process different datasets used usually for aesthetic assessment methods, as well as the newly introduced Reddit Photo Critique Dataset.
 
 ## Get Reddit PhotoCritique Dataset
-__Zenodo:__ https://zenodo.org/record/6656802#.YqyS6xuxWhA
+__Zenodo:__ [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6656802.svg)](https://doi.org/10.5281/zenodo.6656802)
+
 
 __HF datasets:__ Coming soon...
 
