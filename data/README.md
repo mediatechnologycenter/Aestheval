@@ -1,7 +1,7 @@
 # How to get the data
 
-1. Download files from __Zenodo:__ https://zenodo.org/record/6656802#.YqyS6xuxWhA and save them in this directory.
-      1. You can save them in any directory and pass it as an argument later. 
+1. Download files from [__Zenodo:__](https://zenodo.org/record/6985507) and save them under `aestheval/data/reddit` in case the ids files are not already there.
+
 2. Download AVA + DPC, PCCD and Reddit datasets (WIP, AVA is not completely downloaded yet. We recommend checking [this repo](https://github.com/imfing/ava_downloader) out):
 
 ```

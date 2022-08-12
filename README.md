@@ -2,21 +2,13 @@
 
 This repo allows make easy to access and process different datasets used usually for aesthetic assessment methods, as well as the newly introduced Reddit Photo Critique Dataset.
 
-## Get Reddit PhotoCritique Dataset
-__Zenodo:__ [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6656802.svg)](https://doi.org/10.5281/zenodo.6656802)
+## Get Reddit PhotoCritique Dataset ids
+__Zenodo:__ [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6656802.svg)](https://zenodo.org/record/6985507)
 
 
 __HF datasets:__ Coming soon...
 
-Files in the dataset:
-
-- ``reddit_photocritique_posts.pkl`` - 260.7 MB - Processed posts of Reddit
-- ``raw_reddit_photocritique_comments.csv`` - 279.0 MB - File with allt he comments belonging to every post. Not processed.
-- ``processed_info_test.json`` - 208.6 MB - Test set as used for trainings and analysis	
-- ``processed_info_train.json`` - 725.7 MB 	- Train set as used for trainings and analysis
-- ``processed_info_validation.json`` - 104.7 MB - Validation set as used for trainings and analysis
-
-
+The files available in Zenodo correspond to the ids of the posts, divided in the splits used in the expriments of this work.
 
 ## Steps
 
