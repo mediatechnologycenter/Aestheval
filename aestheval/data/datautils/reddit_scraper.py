@@ -6,6 +6,7 @@
 # Sample: https://api.pushshift.io/reddit/search/submission/?subreddit=portraits&size=10
 
 
+import re
 import praw
 import os
 from dotenv import load_dotenv
@@ -19,6 +20,8 @@ from tqdm import tqdm
 import glob
 import csv
 import ast
+import csv
+import re
 
 load_dotenv()
 
@@ -184,29 +187,130 @@ def scrape_posts(data_dir: str):
             action = f"\t\t[Info] Elapsed time: {time.time() - start_time: .2f}s"
             log_action(action)
 
-def scrape_comments(data_dir: str):
+def scrape_posts_by_ids(data_dir: str, chunk_size: int = 5000, sleeping_time: int = 300):
 
-    basecorpus = data_dir
+    submissions_dict = None
+    ids = []
+    id_splits_files = ['train', 'validation', 'test']
+    dirname = os.path.dirname(os.path.dirname(__file__))
+
+    for split in id_splits_files:
+        with open(f'{dirname}/reddit/{split}_ids.csv', newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            ids.extend([re.search('_(.+?)-', row[0]).group(1) for row in reader])
+
+    print(f"{len(ids)} posts ids were located.")
+
+    subreddit = 'photocritique'
+    subredditdirpath = os.path.join(data_dir, subreddit)
+    if not os.path.exists(subredditdirpath):
+        os.makedirs(subredditdirpath)
+
+    total_posts = 0
+
+    for idx, id in enumerate(tqdm(ids)):
+
+        if not submissions_dict:
+            submissions_dict = {
+                "id" : [],
+                "url" : [],
+                "title" : [],
+                "score" : [],
+                "num_comments": [],
+                "created_utc" : [],
+                "selftext" : [],
+                "author_id": [],
+                "upvote_ratio": [],
+                "ups": [],
+                "downs": [],
+                "gilded":[],
+                "top_awarded_type": [],
+                "total_awards_received": [],
+                "all_awardings": [],
+                "awarders": [],
+                "approved_at_utc": [],
+                "num_reports": [],
+                "removed_by": [],
+                "view_count": [],
+                "preview": [],
+                "num_crossposts": [],
+                "link_flair_text": [],
+                "whitelist_status":[]
+
+            }
+        
+        def get_submission(id):
+            try: 
+                # PRAW API might limit the number of requests, see https://praw.readthedocs.io/en/stable/getting_started/ratelimits.html#ratelimits
+                submission_praw = reddit.submission(id=id)
+                return submission_praw
+            except:
+                print(f"Got rate limit trying to get post {id}, sleeping for {sleeping_time/60} mins")
+                time.sleep(sleeping_time)
+                get_submission(id)
+
+        submission_praw = get_submission(id)
+        submissions_dict["id"].append(submission_praw.id)
+        submissions_dict["url"].append(submission_praw.url)
+        submissions_dict["title"].append(submission_praw.title)
+        submissions_dict["score"].append(submission_praw.score)
+        submissions_dict["num_comments"].append(submission_praw.num_comments)
+        submissions_dict["created_utc"].append(submission_praw.created_utc)
+        submissions_dict["selftext"].append(submission_praw.selftext)
+        submissions_dict["upvote_ratio"].append(submission_praw.upvote_ratio)
+        submissions_dict["ups"].append(submission_praw.ups)
+        submissions_dict["downs"].append(submission_praw.downs)
+        submissions_dict["gilded"].append(submission_praw.gilded)
+        submissions_dict["top_awarded_type"].append(submission_praw.top_awarded_type)
+        submissions_dict["total_awards_received"].append(submission_praw.total_awards_received)
+        submissions_dict["all_awardings"].append(submission_praw.all_awardings)
+        submissions_dict["awarders"].append(submission_praw.awarders)
+        submissions_dict["approved_at_utc"].append(submission_praw.approved_at_utc)
+        submissions_dict["num_reports"].append(submission_praw.num_reports)
+        submissions_dict["removed_by"].append(submission_praw.removed_by)
+        submissions_dict["view_count"].append(submission_praw.view_count)
+        submissions_dict["num_crossposts"].append(submission_praw.num_crossposts)
+        submissions_dict["link_flair_text"].append(submission_praw.link_flair_text)
+        submissions_dict["whitelist_status"].append(submission_praw.whitelist_status)
+        
+        
+        try:
+            submissions_dict["preview"].append(submission_praw.preview)
+        except:
+            submissions_dict["preview"].append(-1)
+        try:
+            submissions_dict["author_id"].append(submission_praw.author.id)
+        except:
+            submissions_dict["author_id"].append(-1)
+
+        if idx != 0 and idx % chunk_size == 0:
+            submissions_csv_path =  f'submissions_{str(int(idx / chunk_size))}.csv'
+            df = pd.DataFrame(submissions_dict)
+            df.to_csv(os.path.join(subredditdirpath,submissions_csv_path), index=False)
+            total_posts += df.shape[0]
+
+    action = f"\t\t[Info] Found submissions: {total_posts}"
+    log_action(action)
 
 
-    submissions_dataframes = glob.glob(f'{basecorpus}/*/*/*.csv', recursive=True)
+
+def scrape_comments(data_dir: str, subreddit: str = 'photocritique'):
+
+    submissions_dataframes = glob.glob(f'{os.path.join(data_dir, subreddit)}/*.csv', recursive=True)
     print(submissions_dataframes)
 
     subreddit_submissions = [submissions for submissions in submissions_dataframes for subreddit in subreddits if subreddit in submissions]   
 
-    
+    print(f"Downloading comments of {len(subreddit_submissions)} submission files")
 
     for submissions in sorted(subreddit_submissions):
-        print(submissions)
-        year, subreddit = submissions.split(basecorpus)[1].split('/')[0:2]
         
-
-        action = "[Year] " + str(year) + " [Subreddit] " + subreddit
+        subreddit = submissions.split(data_dir)[1].split('/')[0]
+        action = " [Submissions file] " + submissions
         log_action(action)
         submissions_df = pd.read_csv(submissions)
 
-        dirpath = os.path.join(basecorpus, str(year))
-        subredditdirpath = os.path.join(dirpath,subreddit, 'comments')
+        subredditdirpath = os.path.join(data_dir,subreddit, 'comments')
 
         if not os.path.exists(subredditdirpath):
             os.makedirs(subredditdirpath)
@@ -215,7 +319,7 @@ def scrape_comments(data_dir: str):
         
         for idx, submission in tqdm(submissions_df.iterrows(), total=submissions_df.shape[0]):
             submission_id = submission.id
-            submission_comments_csv_path = str(year) + '-' + subreddit + '-submission_' + submission_id + '-comments.csv'
+            submission_comments_csv_path = submission_id + '-comments.csv'
             submission_comments_path = os.path.join(subredditdirpath, submission_comments_csv_path)
             # if os.path.exists(submission_comments_path):
             #     continue
@@ -285,10 +389,9 @@ def log_bad_image(data_dir, submission_id: str) -> None:
         wr = csv.writer(f, quoting=csv.QUOTE_ALL)
         wr.writerow(submission_id)
 
-def scrape_images(data_dir: str):
+def scrape_images(data_dir: str, subreddit: str = 'photocritique'):
 
-    basecorpus = data_dir
-    processed_posts_file = os.path.join(basecorpus, "reddit_photocritique_posts.pkl")
+    processed_posts_file = os.path.join(data_dir, "reddit_photocritique_posts.pkl")
 
     # If processed file already exist, use it to download images. Else, use scraped posts.
     if os.path.exists(processed_posts_file):
@@ -297,7 +400,7 @@ def scrape_images(data_dir: str):
         download_images_from_df(data_dir, submissions_df)
 
     else:
-        submissions_dataframes = glob.glob(f'{basecorpus}/*/*/*.csv', recursive=True)
+        submissions_dataframes = glob.glob(f'{os.path.join(data_dir, subreddit)}/*.csv', recursive=True)
         print("Getting images for:\n", submissions_dataframes)
 
 
@@ -307,27 +410,20 @@ def scrape_images(data_dir: str):
 
         for submissions in subreddit_submissions:
 
-            year, subreddit = submissions.split(basecorpus)[1].split('/')[0:2]
-
-            action = "[Year] " + str(year) + " [Subreddit] " + subreddit
-            log_action(action)
             submissions_df = pd.read_csv(submissions)
             
-            download_images_from_df(data_dir, submissions_df)
+            download_images_from_df(data_dir, submissions_df, subreddit)
 
-def download_images_from_df(data_dir: str, submissions_df:pd.DataFrame):
+def download_images_from_df(data_dir: str, submissions_df:pd.DataFrame, subreddit: str):
 
 
     for idx, submission in tqdm(submissions_df.iterrows(), total=submissions_df.shape[0]):
         submission_id = submission.id
-        dirpath = data_dir + str(submission.year)
-
-
-        subredditdirpath = os.path.join(dirpath, submission.subreddit, 'images')
+        subredditdirpath = os.path.join(data_dir, subreddit, 'images')
         if not os.path.exists(subredditdirpath):
             os.makedirs(subredditdirpath)
         
-        submission_image_path = f"{submission.year}-{submission.subreddit}-submission_" +submission_id +'-image'
+        submission_image_path = f"{submission_id}-image"
         submission_images_path = os.path.join(subredditdirpath,submission_image_path)
         if glob.glob(submission_images_path + ".*"): #os.path.exists(submission_images_path + ".*"):
             # print("path exists, not downloading images again")

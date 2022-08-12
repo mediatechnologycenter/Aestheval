@@ -11,7 +11,7 @@ def config_parser():
     parser.add_argument("--compute_informativeness_score", action='store_true', help="Whether to compute the informativeness score", default=False)
     parser.add_argument("--run_baseline", action='store_true', help="Whether to compute the sentiment score", default=False)
     parser.add_argument("--run_probbing", action='store_true', help="Whether to compute the sentiment score", default=False)
-    parser.add_argument("--dataset_name", type=str, choices=['PCCD', 'Reddit', 'AVA', 'all'])
+    parser.add_argument("--dataset_name", required=True, type=str, choices=['PCCD', 'Reddit', 'AVA', 'all'])
     parser.add_argument("--evaluate", action='store_true', help="Whether to run only evaluation")
     parser.add_argument("--model_name", type=str, help="nima when running baseline, vit version when running probbing experiments")
     parser.add_argument("--scoring", type=str, choices=['original', 'sentiment'], help="Types of scoring to use", default="original")

@@ -24,10 +24,9 @@ def config_parser():
     return parser
 
 # Method to read comment file given a submission by id
-def read_comments_file(submission_id: str, year:str, subreddit:str):
-    dirpath = os.path.join(root_dir,str(year))
-    subredditdirpath = os.path.join(dirpath, subreddit, 'comments')
-    submission_comments_csv_path = str(year) + '-' + subreddit + '-submission_' + submission_id + '-comments.csv'
+def read_comments_file(submission_id: str, subreddit:str):
+    subredditdirpath = os.path.join(root_dir, subreddit, 'comments')
+    submission_comments_csv_path = submission_id + '-comments.csv'
     submission_comments_path = os.path.join(subredditdirpath,submission_comments_csv_path)
     return pd.read_csv(submission_comments_path, index_col=None, header=0)
 
@@ -38,25 +37,25 @@ def load_reddit_dataset(subreddit_submissions):
     li = []
     comments = {}
     for submissions in subreddit_submissions:
-        year, subreddit, _ = os.path.basename(submissions).split("-")
+        _, _, subreddit, _ = submissions.split("/")
 
         df = pd.read_csv(submissions, index_col=None, header=0)
-        df['year'] = year
+        
         df['subreddit'] = subreddit
         
         li.append(df)
 
         for idx, submission in tqdm(df.iterrows(), total=df.shape[0]):
             try:
-                submission_comments = read_comments_file(submission_id=submission.id, year=year, subreddit=subreddit)
+                submission_comments = read_comments_file(submission_id=submission.id, subreddit=subreddit)
                 comments[submission.id] = submission_comments
             except:
-                print(f"Not able to read comments from submission {submission.id} from {subreddit}-{year}")
+                print(f"Not able to read comments from submission {submission.id} from {subreddit}")
                 continue
 
     df = pd.concat(li, axis=0, ignore_index=True)
 
-    return df, comments
+    return df, comments, subreddit
 
 def filter_bad_comments(ids, texts):
     
@@ -106,21 +105,21 @@ def generate_comments_csv(comments, dataframe_path="raw_reddit_photocritique_com
     comments_df = pd.concat(li, axis=0, ignore_index=True)  # Memory constrained
     comments_df.to_csv(dataframe_path, index=False)
 
-def image_exists(root_data, year, id):
-    paths = [os.path.join(root_data,f"{str(year)}/photocritique/images/",f"{year}-photocritique-submission_{id}-image.{extension}") 
+def image_exists(root_data, id):
+    paths = [os.path.join(root_data,"photocritique/images",f"{id}-image.{extension}") 
                 for extension in ['jpeg', 'jpg', 'png']]
     return any([os.path.exists(path) for path in paths])
 
-def get_image_path(root_data, year, id):
-    paths = [os.path.join(root_data,f"{str(year)}/photocritique/images/",f"{year}-photocritique-submission_{id}-image.{extension}") 
+def get_image_path(root_data, id):
+    paths = [os.path.join(root_data,"photocritique/images",f"{id}-image.{extension}") 
                 for extension in ['jpeg', 'jpg', 'png']]
     res = [path for path in paths if os.path.exists(path)]
 
     if res:
-        return res[0].split('RPCD')[1][1:]
+        return res[0].split('images/')[1]
     return None
 
-def filter_bad_images(root_data, fn, edge_lenght_required=256):
+def filter_bad_images(root_data, subreddit,  fn, edge_lenght_required=256):
     """Filter images corrupted or with longest edge shorter than a required length.
     """
 
@@ -139,7 +138,7 @@ def filter_bad_images(root_data, fn, edge_lenght_required=256):
     def is_valid_file(x: str) -> bool:
         return has_file_allowed_extension(x)
     if fn:
-        path = os.path.join(root_data, fn)
+        path = os.path.join(root_data, subreddit, 'images', fn)
         # print(path)
         if not is_valid_file(path):
             return False
@@ -154,7 +153,7 @@ def filter_bad_images(root_data, fn, edge_lenght_required=256):
             return False
     return False
 
-def prepare_dataframe(df, dataframe_path):
+def prepare_dataframe(df, subreddit, dataframe_path):
     print(f"Raw number of posts: {len(df)}")
     print(f"Raw number of comments: {df.num_comments.sum()}")
 
@@ -187,7 +186,7 @@ def prepare_dataframe(df, dataframe_path):
     df.drop(columns=["whitelist_status"], inplace=True)
 
     # Filter posts without image
-    exists = df.apply(lambda x: image_exists(root_data=root_dir, year=x.year, id=x.id), axis=1)
+    exists = df.apply(lambda x: image_exists(root_data=root_dir, id=x.id), axis=1)
     df["image_exists"] = exists
     print("Num of posts with images: ", len(df[df["image_exists"]]))
 
@@ -197,12 +196,12 @@ def prepare_dataframe(df, dataframe_path):
     print("Num of posts with comments: ", len(df[df["comments_exist"]]))
     
     # Get img paths
-    im_paths = df.apply(lambda x: get_image_path(root_data=root_dir, year=x.year, id=x.id), axis=1)
+    im_paths = df.apply(lambda x: get_image_path(root_data=root_dir, id=x.id), axis=1)
     df['im_paths'] = im_paths
 
     # Filter posts with bad images
     print("Filtering bad images...")
-    good = df.progress_apply(lambda x: filter_bad_images(root_data=root_dir, fn=x.im_paths), axis=1)
+    good = df.progress_apply(lambda x: filter_bad_images(root_data=root_dir, subreddit=subreddit, fn=x.im_paths), axis=1)
     df['image_good'] = good
 
     print(f"Num of posts with good images: {len(df[df['image_good']])}")
@@ -230,18 +229,21 @@ if __name__ == "__main__":
     # Set data root directory and get all submissions files.
     root_dir = args.reddit_dir
     
-    submissions_dataframes = glob.glob(f'{root_dir}/*/*/*.csv', recursive=True)
-    print(submissions_dataframes)
+    
 
     # Select which subreddits we want to analyze. We only have images of the photocritique subreddit for the moment.
     subreddits = ["photocritique"]
+
+    submissions_dataframes = [glob.glob(f'{os.path.join(root_dir, subreddit)}/*.csv', recursive=True) for subreddit in subreddits]    
     # subreddits = ['photocritique', 'portraits', 'shittyHDR', 'postprocessing', 'photographs', 'AskPhotography']
-    subreddit_submissions = [submissions for submissions in submissions_dataframes for subreddit in subreddits if subreddit in submissions]
+    subreddit_submissions = [submissions_file for subreddit in submissions_dataframes for submissions_file in subreddit]
+    print(subreddit_submissions)
     
+
     print("Go and grab a coffe, this is going to take a while :)")
     if not args.only_predictions:
-        df, comments = load_reddit_dataset(subreddit_submissions)   
-        df = prepare_dataframe(df, dataframe_path=os.path.join(root_dir,"reddit_photocritique_posts.pkl"))
+        df, comments, subreddit = load_reddit_dataset(subreddit_submissions)   
+        df = prepare_dataframe(df, subreddit=subreddit, dataframe_path=os.path.join(root_dir,"reddit_photocritique_posts.pkl"))
         generate_comments_csv(comments, dataframe_path=os.path.join(root_dir,"raw_reddit_photocritique_comments.csv"))
     else:
         print("Reading existing dataframe...")
@@ -293,7 +295,9 @@ if __name__ == "__main__":
     comp = torch.load(os.path.join(dirname,'output_composition.pth'))
     composition = pd.DataFrame(comp['prob'].numpy(), columns=comp['classes'])
     composition['max_predicted_composition'] = composition.idxmax(axis=1)
-    composition = pd.concat([composition, pd.DataFrame({'im_paths': comp['fn']})], axis=1)
+    fixed_im_paths = [path.split('_')[1] for path in comp['fn']]
+    print(df.im_paths)
+    composition = pd.concat([composition, pd.DataFrame({'im_paths': fixed_im_paths})], axis=1)
     df = df.merge(composition, on='im_paths')
 
     print(df.shape)
@@ -302,7 +306,8 @@ if __name__ == "__main__":
     sem = torch.load(os.path.join(dirname,'output_semantics.pth'))
     semantics = pd.DataFrame(sem['prob'].numpy(), columns=sem['classes'])
     semantics['max_predicted_semantic'] = semantics.idxmax(axis=1)
-    semantics = pd.concat([semantics, pd.DataFrame({'im_paths': sem['fn']})], axis=1)
+    fixed_im_paths = [path.split('_')[1] for path in sem['fn']]
+    semantics = pd.concat([semantics, pd.DataFrame({'im_paths': fixed_im_paths})], axis=1)
     df = df.merge(semantics, on='im_paths')
 
     print(df.shape)

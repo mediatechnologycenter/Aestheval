@@ -32,10 +32,10 @@ def download_datasets(data_path:str , dataset: str, args):
 
         print("Scraping all data may take a while (several hours)")
         if not args.only_images:
-            reddit_scraper.scrape_posts(dataset_path)
+            reddit_scraper.scrape_posts_by_ids(dataset_path)
             reddit_scraper.scrape_comments(dataset_path)
         reddit_scraper.scrape_images(dataset_path)
-
+        
     if "pccd" in dataset:
         
         output_file= os.path.join(data_path, 'PCCD.zip')
