@@ -284,11 +284,10 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
         except:
             submissions_dict["author_id"].append(-1)
 
-        if idx != 0 and idx % chunk_size == 0:
-            submissions_csv_path =  f'submissions_{str(int(idx / chunk_size))}.csv'
-            df = pd.DataFrame(submissions_dict)
-            df.to_csv(os.path.join(subredditdirpath,submissions_csv_path), index=False)
-            total_posts += df.shape[0]
+        submissions_csv_path =  f'submissions_{idx)}.csv'
+        df = pd.DataFrame(submissions_dict)
+        df.to_csv(os.path.join(subredditdirpath,submissions_csv_path), index=False)
+        total_posts += df.shape[0]
 
     action = f"\t\t[Info] Found submissions: {total_posts}"
     log_action(action)
