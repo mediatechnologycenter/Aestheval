@@ -284,7 +284,7 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
         except:
             submissions_dict["author_id"].append(-1)
 
-        submissions_csv_path =  f'submissions_{idx)}.csv'
+        submissions_csv_path =  f'submissions_{idx}.csv'
         df = pd.DataFrame(submissions_dict)
         df.to_csv(os.path.join(subredditdirpath,submissions_csv_path), index=False)
         total_posts += df.shape[0]
