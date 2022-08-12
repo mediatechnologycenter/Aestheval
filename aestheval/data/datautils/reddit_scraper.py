@@ -198,7 +198,7 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
     for split in id_splits_files:
         with open(f'{dirname}/reddit/{split}_ids.csv', newline='') as csvfile:
             reader = csv.reader(csvfile)
-            ids.extend([re.search('_(.+?)-', row[0]).group(1) for row in reader])
+            ids.extend([row for row in reader])
 
     print(f"{len(ids)} posts ids were located.")
 
