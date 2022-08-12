@@ -7,6 +7,7 @@
 
 
 import re
+from typing import List
 import praw
 import os
 from dotenv import load_dotenv
@@ -187,7 +188,8 @@ def scrape_posts(data_dir: str):
             action = f"\t\t[Info] Elapsed time: {time.time() - start_time: .2f}s"
             log_action(action)
 
-def scrape_posts_by_ids(data_dir: str, chunk_size: int = 5000, sleeping_time: int = 300):
+def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
+    # Chunksize set to 2000 due to completion time increases after ~3000, see https://github.com/mattpodolak/pmaw
 
     submissions_dict = None
     ids = []
@@ -208,7 +210,12 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 5000, sleeping_time: in
 
     total_posts = 0
 
-    for idx, id in enumerate(tqdm(ids)):
+    def create_chunks(array: List, chunk_size: int) -> List[List]:
+        n_chunks = int(len(array)/chunk_size)
+        return [array[chunk_size*i:chunk_size*(i+1)] for i in range(n_chunks+1)]
+            
+    chunked_ids = create_chunks(ids, chunk_size)
+    for idx, chunk in enumerate(tqdm(chunked_ids)):
 
         if not submissions_dict:
             submissions_dict = {
@@ -239,47 +246,41 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 5000, sleeping_time: in
 
             }
         
-        def get_submission(id):
-            try: 
-                # PRAW API might limit the number of requests, see https://praw.readthedocs.io/en/stable/getting_started/ratelimits.html#ratelimits
-                submission_praw = reddit.submission(id=id)
-                return submission_praw
-            except:
-                print(f"Got rate limit trying to get post {id}, sleeping for {sleeping_time/60} mins")
-                time.sleep(sleeping_time)
-                get_submission(id)
-
-        submission_praw = get_submission(id)
-        submissions_dict["id"].append(submission_praw.id)
-        submissions_dict["url"].append(submission_praw.url)
-        submissions_dict["title"].append(submission_praw.title)
-        submissions_dict["score"].append(submission_praw.score)
-        submissions_dict["num_comments"].append(submission_praw.num_comments)
-        submissions_dict["created_utc"].append(submission_praw.created_utc)
-        submissions_dict["selftext"].append(submission_praw.selftext)
-        submissions_dict["upvote_ratio"].append(submission_praw.upvote_ratio)
-        submissions_dict["ups"].append(submission_praw.ups)
-        submissions_dict["downs"].append(submission_praw.downs)
-        submissions_dict["gilded"].append(submission_praw.gilded)
-        submissions_dict["top_awarded_type"].append(submission_praw.top_awarded_type)
-        submissions_dict["total_awards_received"].append(submission_praw.total_awards_received)
-        submissions_dict["all_awardings"].append(submission_praw.all_awardings)
-        submissions_dict["awarders"].append(submission_praw.awarders)
-        submissions_dict["approved_at_utc"].append(submission_praw.approved_at_utc)
-        submissions_dict["num_reports"].append(submission_praw.num_reports)
-        submissions_dict["removed_by"].append(submission_praw.removed_by)
-        submissions_dict["view_count"].append(submission_praw.view_count)
-        submissions_dict["num_crossposts"].append(submission_praw.num_crossposts)
-        submissions_dict["link_flair_text"].append(submission_praw.link_flair_text)
-        submissions_dict["whitelist_status"].append(submission_praw.whitelist_status)
+        
+        gen = api.search_submissions(
+                    ids=chunk
+                )
+        for submission in gen:
+            submissions_dict["id"].append(submission['id'])
+            submissions_dict["url"].append(submission['url'])
+            submissions_dict["title"].append(submission['title'])
+            submissions_dict["score"].append(submission['score'])
+            submissions_dict["num_comments"].append(submission['num_comments'])
+            submissions_dict["created_utc"].append(submission['created_utc'])
+            submissions_dict["selftext"].append(submission['selftext'])
+            submissions_dict["upvote_ratio"].append(submission['upvote_ratio'])
+            submissions_dict["ups"].append(submission['ups'])
+            submissions_dict["downs"].append(submission['downs'])
+            submissions_dict["gilded"].append(submission['gilded'])
+            submissions_dict["top_awarded_type"].append(submission['top_awarded_type'])
+            submissions_dict["total_awards_received"].append(submission['total_awards_received'])
+            submissions_dict["all_awardings"].append(submission['all_awardings'])
+            submissions_dict["awarders"].append(submission['awarders'])
+            submissions_dict["approved_at_utc"].append(submission['approved_at_utc'])
+            submissions_dict["num_reports"].append(submission['num_reports'])
+            submissions_dict["removed_by"].append(submission['removed_by'])
+            submissions_dict["view_count"].append(submission['view_count'])
+            submissions_dict["num_crossposts"].append(submission['num_crossposts'])
+            submissions_dict["link_flair_text"].append(submission['link_flair_text'])
+            submissions_dict["whitelist_status"].append(submission['whitelist_status'])
         
         
         try:
-            submissions_dict["preview"].append(submission_praw.preview)
+            submissions_dict["preview"].append(submission['preview'])
         except:
             submissions_dict["preview"].append(-1)
         try:
-            submissions_dict["author_id"].append(submission_praw.author.id)
+            submissions_dict["author_id"].append(submission['author'].id)
         except:
             submissions_dict["author_id"].append(-1)
 

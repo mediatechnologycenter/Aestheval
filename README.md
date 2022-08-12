@@ -20,16 +20,16 @@ Files in the dataset:
 
 ## Steps
 
-### 1. Create environment
+### 1. Create environment and install requirements
 
 ```
-conda env create -f environment.yml
+conda env create -n aestheval
 pip install -e .
 ```
 
 ### 2. Download datasets
 
-Follow the README in the directory `data/` to download at least the images from Reddit.
+Follow the [data README](https://github.com/mediatechnologycenter/aestheval/tree/main/data) to download the RPCD dataset.
 
 ### 3. Process Reddit dataset
 
