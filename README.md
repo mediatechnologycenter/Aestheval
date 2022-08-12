@@ -57,7 +57,7 @@ The repo is structured as follows:
 
 ## Cite
 If you use this dataset, please cite the following paper:
-* Nieto, Daniel Vera, Luigi Celona, and Clara Fernandez-Labrador. "Understanding Aesthetics with Language: A Photo Critique Dataset for Aesthetic Assessment." arXiv preprint arXiv:2206.08614 (2022) [[PDF]](https://arxiv.org/abs/2206.08614).
+* Daniel Vera Nieto, Luigi Celona, and Clara Fernandez-Labrador. "Understanding Aesthetics with Language: A Photo Critique Dataset for Aesthetic Assessment." arXiv preprint arXiv:2206.08614 (2022) [[PDF]](https://arxiv.org/abs/2206.08614).
 
 ```
 @misc{nieto2022understanding,
