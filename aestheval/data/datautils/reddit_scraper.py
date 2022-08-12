@@ -191,7 +191,6 @@ def scrape_posts(data_dir: str):
 def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
     # Chunksize set to 2000 due to completion time increases after ~3000, see https://github.com/mattpodolak/pmaw
 
-    submissions_dict = None
     ids = []
     id_splits_files = ['train', 'validation', 'test']
     dirname = os.path.dirname(os.path.dirname(__file__))
@@ -217,34 +216,33 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
     chunked_ids = create_chunks(ids, chunk_size)
     for idx, chunk in enumerate(tqdm(chunked_ids)):
 
-        if not submissions_dict:
-            submissions_dict = {
-                "id" : [],
-                "url" : [],
-                "title" : [],
-                "score" : [],
-                "num_comments": [],
-                "created_utc" : [],
-                "selftext" : [],
-                "author_id": [],
-                "upvote_ratio": [],
-                "ups": [],
-                "downs": [],
-                "gilded":[],
-                "top_awarded_type": [],
-                "total_awards_received": [],
-                "all_awardings": [],
-                "awarders": [],
-                "approved_at_utc": [],
-                "num_reports": [],
-                "removed_by": [],
-                "view_count": [],
-                "preview": [],
-                "num_crossposts": [],
-                "link_flair_text": [],
-                "whitelist_status":[]
+        submissions_dict = {
+            "id" : [],
+            "url" : [],
+            "title" : [],
+            "score" : [],
+            "num_comments": [],
+            "created_utc" : [],
+            "selftext" : [],
+            "author_id": [],
+            "upvote_ratio": [],
+            "ups": [],
+            "downs": [],
+            "gilded":[],
+            "top_awarded_type": [],
+            "total_awards_received": [],
+            "all_awardings": [],
+            "awarders": [],
+            "approved_at_utc": [],
+            "num_reports": [],
+            "removed_by": [],
+            "view_count": [],
+            "preview": [],
+            "num_crossposts": [],
+            "link_flair_text": [],
+            "whitelist_status":[]
 
-            }
+        }
         
         
         gen = api.search_submissions(
@@ -275,18 +273,19 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
             submissions_dict["whitelist_status"].append(submission['whitelist_status'])
         
         
-        try:
-            submissions_dict["preview"].append(submission['preview'])
-        except:
-            submissions_dict["preview"].append(-1)
-        try:
-            submissions_dict["author_id"].append(submission['author'].id)
-        except:
-            submissions_dict["author_id"].append(-1)
+            try:
+                submissions_dict["preview"].append(submission['preview'])
+            except:
+                submissions_dict["preview"].append(-1)
+            try:
+                submissions_dict["author_id"].append(submission['author'].id)
+            except:
+                submissions_dict["author_id"].append(-1)
 
         submissions_csv_path =  f'submissions_{idx}.csv'
         df = pd.DataFrame(submissions_dict)
-        df.to_csv(os.path.join(subredditdirpath,submissions_csv_path), index=False)
+        if df.shape[0]:
+            df.to_csv(os.path.join(subredditdirpath,submissions_csv_path), index=False)
         total_posts += df.shape[0]
 
     action = f"\t\t[Info] Found submissions: {total_posts}"
