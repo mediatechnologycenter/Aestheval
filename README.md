@@ -1,3 +1,5 @@
+Currently WIP: Implementing feedback from reviewers
+
 # aestheval
 
 This repo allows make easy to access and process different datasets used usually for aesthetic assessment methods, as well as the newly introduced Reddit Photo Critique Dataset.
@@ -39,7 +41,8 @@ On PCCD, AVA and Reddit (takes a while)
 python main.py --compute_sentiment_score --compute_informativeness_score
 ```
 
-Already processed files can be found under `data/`. This directory can be changed using the `--data_path` argument. This step produces the files you downloaded from Zenodo:
+Already processed files can be found under `data/`. This directory can be changed using the `--data_path` argument:
+
 - ``processed_info_test.json`` 
 - ``processed_info_train.json`` 
 - ``processed_info_validation.json``
