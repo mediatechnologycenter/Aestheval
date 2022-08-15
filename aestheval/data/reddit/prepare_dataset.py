@@ -24,8 +24,8 @@ def config_parser():
     return parser
 
 # Method to read comment file given a submission by id
-def read_comments_file(submission_id: str, subreddit:str):
-    subredditdirpath = os.path.join(root_dir, subreddit, 'comments')
+def read_comments_file(submission_id: str, subreddit:str, filename:str):
+    subredditdirpath = os.path.join(root_dir, subreddit, 'comments', filename)
     submission_comments_csv_path = submission_id + '-comments.csv'
     submission_comments_path = os.path.join(subredditdirpath,submission_comments_csv_path)
     return pd.read_csv(submission_comments_path, index_col=None, header=0)
@@ -37,7 +37,8 @@ def load_reddit_dataset(subreddit_submissions):
     li = []
     comments = {}
     for submissions in subreddit_submissions:
-        _, _, subreddit, _ = submissions.split("/")
+        _, _, subreddit, filename = submissions.split("/")
+        filename = filename.split(".")[0]
 
         df = pd.read_csv(submissions, index_col=None, header=0)
         
@@ -47,7 +48,7 @@ def load_reddit_dataset(subreddit_submissions):
 
         for idx, submission in tqdm(df.iterrows(), total=df.shape[0]):
             try:
-                submission_comments = read_comments_file(submission_id=submission.id, subreddit=subreddit)
+                submission_comments = read_comments_file(submission_id=submission.id, subreddit=subreddit, filename=filename)
                 comments[submission.id] = submission_comments
             except:
                 print(f"Not able to read comments from submission {submission.id} from {subreddit}")

@@ -141,3 +141,4 @@ ckpts
 #Files
 testing.ipynb
 bsub.txt
+*.old

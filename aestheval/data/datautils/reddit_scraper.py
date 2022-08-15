@@ -214,7 +214,16 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
         return [array[chunk_size*i:chunk_size*(i+1)] for i in range(n_chunks+1)]
             
     chunked_ids = create_chunks(ids, chunk_size)
+
+
     for idx, chunk in enumerate(tqdm(chunked_ids)):
+
+
+        submissions_csv_path =  f'submissions_{idx}.csv'
+        output_path = os.path.join(subredditdirpath,submissions_csv_path)
+
+        if os.path.exists(output_path):
+            continue
 
         submissions_dict = {
             "id" : [],
@@ -282,13 +291,12 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
             except:
                 submissions_dict["author_id"].append(-1)
 
-        submissions_csv_path =  f'submissions_{idx}.csv'
         df = pd.DataFrame(submissions_dict)
         if df.shape[0]:
-            df.to_csv(os.path.join(subredditdirpath,submissions_csv_path), index=False)
+            df.to_csv(output_path, index=False)
         total_posts += df.shape[0]
 
-    action = f"\t\t[Info] Found submissions: {total_posts}"
+    action = f"\t\t[Info] Found {total_posts} new submissions"
     log_action(action)
 
 
@@ -304,22 +312,29 @@ def scrape_comments(data_dir: str, subreddit: str = 'photocritique'):
 
     for submissions in sorted(subreddit_submissions):
         
-        subreddit = submissions.split(data_dir)[1].split('/')[0]
+        subreddit, filename = submissions.split(data_dir)[1].split('/')
+        filename = filename.split(".")[0]
+
         action = " [Submissions file] " + submissions
         log_action(action)
         submissions_df = pd.read_csv(submissions)
 
         subredditdirpath = os.path.join(data_dir,subreddit, 'comments')
+        commentspath = os.path.join(subredditdirpath, filename)
 
         if not os.path.exists(subredditdirpath):
             os.makedirs(subredditdirpath)
 
-        print(subredditdirpath)
+        if not os.path.exists(commentspath):
+            os.makedirs(commentspath)
+
+
+        print(f"Saving comments to {commentspath}")
         
         for idx, submission in tqdm(submissions_df.iterrows(), total=submissions_df.shape[0]):
             submission_id = submission.id
             submission_comments_csv_path = submission_id + '-comments.csv'
-            submission_comments_path = os.path.join(subredditdirpath, submission_comments_csv_path)
+            submission_comments_path = os.path.join(commentspath, submission_comments_csv_path)
             # if os.path.exists(submission_comments_path):
             #     continue
             
@@ -410,20 +425,28 @@ def scrape_images(data_dir: str, subreddit: str = 'photocritique'):
         for submissions in subreddit_submissions:
 
             submissions_df = pd.read_csv(submissions)
+            subreddit, filename = submissions.split(data_dir)[1].split('/')
+            filename = filename.split(".")[0]
             
-            download_images_from_df(data_dir, submissions_df, subreddit)
+            download_images_from_df(data_dir, submissions_df, subreddit, filename)
 
-def download_images_from_df(data_dir: str, submissions_df:pd.DataFrame, subreddit: str):
+def download_images_from_df(data_dir: str, submissions_df:pd.DataFrame, subreddit: str, filename:str):
 
 
     for idx, submission in tqdm(submissions_df.iterrows(), total=submissions_df.shape[0]):
         submission_id = submission.id
         subredditdirpath = os.path.join(data_dir, subreddit, 'images')
+        imagespath = os.path.join(subredditdirpath, filename)
+        
+        print(f"Saving images to {imagespath}")
+
         if not os.path.exists(subredditdirpath):
             os.makedirs(subredditdirpath)
+        if not os.path.exists(imagespath):
+            os.makedirs(imagespath)
         
         submission_image_path = f"{submission_id}-image"
-        submission_images_path = os.path.join(subredditdirpath,submission_image_path)
+        submission_images_path = os.path.join(imagespath,submission_image_path)
         if glob.glob(submission_images_path + ".*"): #os.path.exists(submission_images_path + ".*"):
             # print("path exists, not downloading images again")
             continue
