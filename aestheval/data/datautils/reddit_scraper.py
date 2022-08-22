@@ -335,8 +335,9 @@ def scrape_comments(data_dir: str, subreddit: str = 'photocritique'):
             submission_id = submission.id
             submission_comments_csv_path = submission_id + '-comments.csv'
             submission_comments_path = os.path.join(commentspath, submission_comments_csv_path)
-            # if os.path.exists(submission_comments_path):
-            #     continue
+            if os.path.exists(submission_comments_path):
+                continue
+            
             
             submission_comments_dict = {
                 "comment_id" : [],

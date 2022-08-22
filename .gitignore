@@ -142,3 +142,4 @@ ckpts
 testing.ipynb
 bsub.txt
 *.old
+*.out

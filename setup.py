@@ -25,6 +25,7 @@ install_requires = [
 	"praw",
 	"pmaw",
 	"python-dotenv",
+	"detoxify"
 ]
 
 setup(
