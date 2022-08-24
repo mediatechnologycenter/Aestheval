@@ -1,16 +1,12 @@
-Currently WIP: Implementing feedback from reviewers
-
 # aestheval
 
 This repo allows make easy to access and process different datasets used usually for aesthetic assessment methods, as well as the newly introduced Reddit Photo Critique Dataset.
 
 ## Get Reddit PhotoCritique Dataset ids
 __Zenodo:__ [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6656802.svg)](https://zenodo.org/record/6985507)
-
-
-__HF datasets:__ Coming soon...
-
 The files available in Zenodo correspond to the ids of the posts, divided in the splits used in the expriments of this work.
+
+A detailed description of the dataset can be found on the [datasheet](data/datasheet.md).
 
 ## Steps
 
@@ -28,10 +24,10 @@ Follow the [data README](https://github.com/mediatechnologycenter/aestheval/tree
 ### 3. Process Reddit dataset
 
 ```
-python aestheval/data/reddit/prepare_dataset.py --only_predictions  # Reads the provided dataframe.
+python aestheval/data/reddit/prepare_dataset.py
 ```
 
-Use the `--reddit_dir` argument to set the directory where you downloaded ``reddit_photocritique_posts.pkl`` file. Default is `data/`. If posts and comments were not downloaded before, not setting --only_predictions argument will make the script to throw erros.
+Default `--reddit_dir` is `data/`.
 
 ### 4. Predict sentiment of comments and compute informativeness score
 
@@ -53,6 +49,7 @@ The repo is structured as follows:
 - `EDAs`: Exploratory Data Analysis of AVA, DPC, PCCD and RPCD, as well as the concatenation of them all.
 - `aestheval`: Library with the data utils to download, load and process data; as well with the baselines used in this project.
 - `results`: Results of the expeeriments with Aesthetic ViT, ViT + Linear probe and NIMA.
+- `data`: Default directory for the data.
 
 
 ## Cite
