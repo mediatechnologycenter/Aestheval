@@ -57,12 +57,10 @@ If you use this dataset, please cite the following paper:
 * Daniel Vera Nieto, Luigi Celona, and Clara Fernandez-Labrador. "Understanding Aesthetics with Language: A Photo Critique Dataset for Aesthetic Assessment." arXiv preprint arXiv:2206.08614 (2022) [[PDF]](https://arxiv.org/abs/2206.08614).
 
 ```
-@misc{nieto2022understanding,
+@inproceedings{nieto2022understanding,
     title={Understanding Aesthetics with Language: A Photo Critique Dataset for Aesthetic Assessment},
     author={Daniel Vera Nieto and Luigi Celona and Clara Fernandez-Labrador},
     year={2022},
-    eprint={2206.08614},
-    archivePrefix={arXiv},
-    primaryClass={cs.CV}
+    booktitle={Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmarks}
 }
 ```
