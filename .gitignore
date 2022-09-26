@@ -137,6 +137,7 @@ data/*/*
 runs
 ckpts
 .vscode
+.cache
 
 #Files
 testing.ipynb

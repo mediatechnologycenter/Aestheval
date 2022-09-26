@@ -254,8 +254,12 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
 
         }
         gen = api.search_submissions(
-                    ids=chunk
+                    ids=chunk,
+                    mem_safe=True,
+                    cache_dir=".cache/aestheval"
                 )
+        action = f"\t\t[Info] Processing chunk {(idx)}/{len(chunked_ids)}"
+        log_action(action)
         for index, submission in enumerate(gen):
             submissions_dict["id"].append(submission['id'])
             submissions_dict["url"].append(submission['url'])
@@ -289,9 +293,8 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
                 submissions_dict["author_id"].append(submission['author'].id)
             except:
                 submissions_dict["author_id"].append(-1)
-            
-            if index % (chunk_size/10) == 0:
-                print(f"{index+1} submissions in current chunk processed")
+            if (index+1) % (int(chunk_size/100)) == 0:
+                print(f"{index+1}/{chunk_size} submissions in current chunk processed")
 
         df = pd.DataFrame(submissions_dict)
         if df.shape[0]:
@@ -364,7 +367,9 @@ def scrape_comments(data_dir: str, subreddit: str = 'photocritique'):
             # extend the comment tree all the way
             # submission_praw = reddit.submission(id=submission_id)
             # submission_praw.comments.replace_more(limit=None)
-            comment_ids = api.search_submission_comment_ids(ids=submission_id)
+            comment_ids = api.search_submission_comment_ids(ids=submission_id,
+                                                            mem_safe=True,
+                                                            cache_dir=".cache/aestheval")
             comment_id_list = [c_id for c_id in comment_ids]
             print(f"Found {len(comment_id_list)} comments for submission {submission_id}")
             # comments = api.search_comments(ids=comment_id_list)
