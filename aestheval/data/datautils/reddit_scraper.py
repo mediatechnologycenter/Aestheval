@@ -198,7 +198,7 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
     for split in id_splits_files:
         with open(f'{dirname}/reddit/{split}_ids.csv', newline='') as csvfile:
             reader = csv.reader(csvfile)
-            ids.extend([row for row in reader])
+            ids.extend([row[0] for row in reader])
 
     print(f"{len(ids)} posts ids were located.")
 
@@ -214,6 +214,7 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
         return [array[chunk_size*i:chunk_size*(i+1)] for i in range(n_chunks+1)]
             
     chunked_ids = create_chunks(ids, chunk_size)
+    print(f"The ids were divided in {len(chunked_ids)} chunks")
 
 
     for idx, chunk in enumerate(tqdm(chunked_ids)):
@@ -252,12 +253,10 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
             "whitelist_status":[]
 
         }
-        
-        
         gen = api.search_submissions(
                     ids=chunk
                 )
-        for submission in gen:
+        for index, submission in enumerate(gen):
             submissions_dict["id"].append(submission['id'])
             submissions_dict["url"].append(submission['url'])
             submissions_dict["title"].append(submission['title'])
@@ -290,6 +289,9 @@ def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
                 submissions_dict["author_id"].append(submission['author'].id)
             except:
                 submissions_dict["author_id"].append(-1)
+            
+            if index % (chunk_size/10) == 0:
+                print(f"{index+1} submissions in current chunk processed")
 
         df = pd.DataFrame(submissions_dict)
         if df.shape[0]:
@@ -311,8 +313,7 @@ def scrape_comments(data_dir: str, subreddit: str = 'photocritique'):
     print(f"Downloading comments of {len(subreddit_submissions)} submission files")
 
     for submissions in sorted(subreddit_submissions):
-        
-        subreddit, filename = submissions.split(data_dir)[1].split('/')
+        subreddit, filename = submissions.split('/')[-2:]
         filename = filename.split(".")[0]
 
         action = " [Submissions file] " + submissions
@@ -349,7 +350,7 @@ def scrape_comments(data_dir: str, subreddit: str = 'photocritique'):
                 "comment_top_awarded_type": [],
                 "comment_total_awards_received": [],
                 'comment_controversiality': [],
-                'comment_depth': [],
+                # 'comment_depth': [],
                 "comment_ups": [],
                 "comment_downs": [],
                 "comment_gilded":[],
@@ -361,31 +362,34 @@ def scrape_comments(data_dir: str, subreddit: str = 'photocritique'):
         ### BLOCK 7 ###
 
             # extend the comment tree all the way
-            submission_praw = reddit.submission(id=submission_id)
-            submission_praw.comments.replace_more(limit=None)
-            # comment_ids = api.search_submission_comment_ids(ids=submission_id)
-            # comment_id_list = [c_id for c_id in comment_ids]
+            # submission_praw = reddit.submission(id=submission_id)
+            # submission_praw.comments.replace_more(limit=None)
+            comment_ids = api.search_submission_comment_ids(ids=submission_id)
+            comment_id_list = [c_id for c_id in comment_ids]
+            print(f"Found {len(comment_id_list)} comments for submission {submission_id}")
             # comments = api.search_comments(ids=comment_id_list)
             # comment_list = [comment for comment in comments]
+            # print(comment_list)
             # for each comment in flattened comment tree
-            for comment in submission_praw.comments.list():
-                submission_comments_dict["comment_id"].append(comment.id)
-                submission_comments_dict["comment_parent_id"].append(comment.parent_id)
-                submission_comments_dict["comment_body"].append(comment.body)
-                submission_comments_dict["comment_link_id"].append(comment.link_id)
-                submission_comments_dict["comment_all_awardings"].append(comment.all_awardings)
-                submission_comments_dict["comment_top_awarded_type"].append(comment.top_awarded_type)
-                submission_comments_dict["comment_controversiality"].append(comment.controversiality)
-                submission_comments_dict["comment_depth"].append(comment.depth)
-                submission_comments_dict["comment_ups"].append(comment.ups)
-                submission_comments_dict["comment_downs"].append(comment.downs)
-                submission_comments_dict["comment_gilded"].append(comment.gilded)
-                submission_comments_dict["comment_score"].append(comment.score)
-                submission_comments_dict["comment_total_awards_received"].append(comment.total_awards_received)
-                submission_comments_dict["created_utc"].append(comment.created_utc)
+            # for comment in submission_praw.comments.list():
+            for comment in comment_id_list:
+                submission_comments_dict["comment_id"].append(comment['id'])
+                submission_comments_dict["comment_parent_id"].append(comment['parent_id'])
+                submission_comments_dict["comment_body"].append(comment['body'])
+                submission_comments_dict["comment_link_id"].append(comment['link_id'])
+                submission_comments_dict["comment_all_awardings"].append(comment['all_awardings'])
+                submission_comments_dict["comment_top_awarded_type"].append(comment['top_awarded_type'])
+                submission_comments_dict["comment_controversiality"].append(comment['controversiality'])
+                # submission_comments_dict["comment_depth"].append(comment['depth'])
+                submission_comments_dict["comment_ups"].append(comment['ups'])
+                submission_comments_dict["comment_downs"].append(comment['downs'])
+                submission_comments_dict["comment_gilded"].append(comment['gilded'])
+                submission_comments_dict["comment_score"].append(comment['score'])
+                submission_comments_dict["comment_total_awards_received"].append(comment['total_awards_received'])
+                submission_comments_dict["created_utc"].append(comment['created_utc'])
 
                 try:
-                    submission_comments_dict["comment_author"].append(comment.author.id)
+                    submission_comments_dict["comment_author"].append(comment['author'].id)
                 except:
                     submission_comments_dict["comment_author"].append(-1)
 
