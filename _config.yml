@@ -1,1 +1,3 @@
-theme: jekyll-theme-cayman
+theme: jekyll-theme-minimal
+title: Reddit Photo Critique Dataset
+description: This repo makes easy to access and process different datasets used usually for aesthetic assessment methods, as well as the newly introduced Reddit Photo Critique Dataset.
