@@ -25,8 +25,9 @@ def config_parser():
 
 # Method to read comment file given a submission by id
 def read_comments_file(submission_id: str, subreddit:str, filename:str):
-    subredditdirpath = os.path.join(root_dir, subreddit, 'comments', filename)
-    submission_comments_csv_path = submission_id + '-comments.csv'
+    subredditdirpath = os.path.join(root_dir, subreddit, 'comments')
+    year = filename.split('-')[0]
+    submission_comments_csv_path = f"{year}-{subreddit}-submission_{submission_id}-comments.csv"
     submission_comments_path = os.path.join(subredditdirpath,submission_comments_csv_path)
     return pd.read_csv(submission_comments_path, index_col=None, header=0)
 
@@ -37,7 +38,7 @@ def load_reddit_dataset(subreddit_submissions):
     li = []
     comments = {}
     for submissions in subreddit_submissions:
-        _, _, subreddit, filename = submissions.split("/")
+        subreddit, filename = submissions.split("/")[-2:]
         filename = filename.split(".")[0]
 
         df = pd.read_csv(submissions, index_col=None, header=0)
