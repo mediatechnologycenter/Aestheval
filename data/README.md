@@ -13,4 +13,4 @@ To download data from Reddit, you will need to register a new user agent to quer
 
 ## Disclaimer
 
-Getting the data from Reddit and Pushshift can take some hours, depending mainly on their servers load. Data download is implemented with multithreadig using [PMAW](https://github.com/mattpodolak/pmaw).
+Getting the data from Reddit and Pushshift can take some time, depending mainly on their servers load. Data download is implemented with multithreadig using [PMAW](https://github.com/mattpodolak/pmaw). We have also encountered SSL certificate errors coming from PMAW while retrieving the content, but it's possible to re-start the download skipping the already downloaded files.
