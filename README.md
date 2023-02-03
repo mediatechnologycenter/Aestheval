@@ -8,6 +8,10 @@ The files available in Zenodo correspond to the ids of the posts, divided in the
 
 A detailed description of the dataset can be found on the [datasheet](data/datasheet.md).
 
+## Models
+
+ViT L/16 models trained on AVA, PCCD and RPCD datasets to predict the proposed sentiment score can be found [here](https://drive.google.com/drive/folders/1KuuiyNJUa92rCUtv9JO6gyAJ0plpqxcS?usp=sharing).
+
 ## Steps
 
 ### 1. Create environment and install requirements
