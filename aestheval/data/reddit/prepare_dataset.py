@@ -107,15 +107,14 @@ def generate_comments_csv(comments, dataframe_path="raw_reddit_photocritique_com
     comments_df = pd.concat(li, axis=0, ignore_index=True)  # Memory constrained
     comments_df.to_csv(dataframe_path, index=False)
 
-def image_exists(root_data, id):
-    paths = [os.path.join(root_data,"photocritique/images",f"{id}-image.{extension}") 
-                for extension in ['jpeg', 'jpg', 'png']]
-    return any([os.path.exists(path) for path in paths])
+def image_exists(images_paths, id):
+    
+    image_path = [image for image in images_paths if id in image]
+    return len(image_path) != 0
 
-def get_image_path(root_data, id):
-    paths = [os.path.join(root_data,"photocritique/images",f"{id}-image.{extension}") 
-                for extension in ['jpeg', 'jpg', 'png']]
-    res = [path for path in paths if os.path.exists(path)]
+def get_image_path(images_paths, id):
+    image_paths = [image for image in images_paths if id in image]
+    res = [path for path in image_paths if os.path.exists(path)]
 
     if res:
         return res[0].split('images/')[1]
@@ -188,7 +187,8 @@ def prepare_dataframe(df, subreddit, dataframe_path):
     df.drop(columns=["whitelist_status"], inplace=True)
 
     # Filter posts without image
-    exists = df.apply(lambda x: image_exists(root_data=root_dir, id=x.id), axis=1)
+    images = glob.glob(os.path.join(root_dir,"photocritique/images/*/**"), recursive=True)
+    exists = df.apply(lambda x: image_exists(images_paths=images, id=x.id), axis=1)
     df["image_exists"] = exists
     print("Num of posts with images: ", len(df[df["image_exists"]]))
 
@@ -198,7 +198,7 @@ def prepare_dataframe(df, subreddit, dataframe_path):
     print("Num of posts with comments: ", len(df[df["comments_exist"]]))
     
     # Get img paths
-    im_paths = df.apply(lambda x: get_image_path(root_data=root_dir, id=x.id), axis=1)
+    im_paths = df.apply(lambda x: get_image_path(images_paths=images, id=x.id), axis=1)
     df['im_paths'] = im_paths
 
     # Filter posts with bad images
@@ -236,9 +236,9 @@ if __name__ == "__main__":
     # Select which subreddits we want to analyze. We only have images of the photocritique subreddit for the moment.
     subreddits = ["photocritique"]
 
-    submissions_dataframes = [glob.glob(f'{os.path.join(root_dir, subreddit)}/*.csv', recursive=True) for subreddit in subreddits]    
+    submissions_dataframes = [glob.glob(f'{os.path.join(root_dir, subreddit)}/*.csv', recursive=True) for subreddit in subreddits]   
     # subreddits = ['photocritique', 'portraits', 'shittyHDR', 'postprocessing', 'photographs', 'AskPhotography']
-    subreddit_submissions = [submissions_file for subreddit in submissions_dataframes for submissions_file in subreddit]
+    subreddit_submissions = [submissions_file for subreddit in submissions_dataframes for submissions_file in subreddit][:2] 
     print(subreddit_submissions)
     
 
@@ -294,23 +294,23 @@ if __name__ == "__main__":
     print(df.shape)
 
     # Add composition predictions
-    comp = torch.load(os.path.join(dirname,'output_composition.pth'))
-    composition = pd.DataFrame(comp['prob'].numpy(), columns=comp['classes'])
-    composition['max_predicted_composition'] = composition.idxmax(axis=1)
-    fixed_im_paths = [path.split('_')[1] for path in comp['fn']]
-    print(df.im_paths)
-    composition = pd.concat([composition, pd.DataFrame({'im_paths': fixed_im_paths})], axis=1)
-    df = df.merge(composition, on='im_paths')
+    # comp = torch.load(os.path.join(dirname,'output_composition.pth'))
+    # composition = pd.DataFrame(comp['prob'].numpy(), columns=comp['classes'])
+    # composition['max_predicted_composition'] = composition.idxmax(axis=1)
+    # fixed_im_paths = [path.split('_')[1] for path in comp['fn']]
+    # print(df.im_paths)
+    # composition = pd.concat([composition, pd.DataFrame({'im_paths': fixed_im_paths})], axis=1)
+    # df = df.merge(composition, on='im_paths')
 
-    print(df.shape)
+    # print(df.shape)
 
-    # Add semantic prediction
-    sem = torch.load(os.path.join(dirname,'output_semantics.pth'))
-    semantics = pd.DataFrame(sem['prob'].numpy(), columns=sem['classes'])
-    semantics['max_predicted_semantic'] = semantics.idxmax(axis=1)
-    fixed_im_paths = [path.split('_')[1] for path in sem['fn']]
-    semantics = pd.concat([semantics, pd.DataFrame({'im_paths': fixed_im_paths})], axis=1)
-    df = df.merge(semantics, on='im_paths')
+    # # Add semantic prediction
+    # sem = torch.load(os.path.join(dirname,'output_semantics.pth'))
+    # semantics = pd.DataFrame(sem['prob'].numpy(), columns=sem['classes'])
+    # semantics['max_predicted_semantic'] = semantics.idxmax(axis=1)
+    # fixed_im_paths = [path.split('_')[1] for path in sem['fn']]
+    # semantics = pd.concat([semantics, pd.DataFrame({'im_paths': fixed_im_paths})], axis=1)
+    # df = df.merge(semantics, on='im_paths')
 
     print(df.shape)
 
