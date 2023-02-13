@@ -46,7 +46,7 @@ def log_action(action):
 def scrape_posts(data_dir: str):
 
     start_year = 2009
-    end_year = 2022
+    end_year = 2023
     # start_year = args.year
     # end_year = start_year
     # directory on which to store the data
@@ -119,16 +119,14 @@ def scrape_posts(data_dir: str):
 
     ### BLOCK 4 ###
 
-            # use PSAW only to get id of submissions in time interval
+            # use PMAW only to get id of submissions in time interval
             gen = api.search_submissions(
-                after=ts_after,
-                before=ts_before,
+                since=ts_after,
+                until=ts_before,
                 # filter=['id'],
                 subreddit=subreddit,
                 limit=LIMIT
             )
-
-            print(api.metadata_)
 
     ### BLOCK 5 ###
 
@@ -188,7 +186,7 @@ def scrape_posts(data_dir: str):
             action = f"\t\t[Info] Elapsed time: {time.time() - start_time: .2f}s"
             log_action(action)
 
-def scrape_posts_by_ids(data_dir: str, chunk_size: int = 2000):
+def scrape_posts_by_ids(data_dir: str, chunk_size: int = 1000):
     # Chunksize set to 2000 due to completion time increases after ~3000, see https://github.com/mattpodolak/pmaw
 
     ids = []
