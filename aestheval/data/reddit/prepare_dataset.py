@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
     submissions_dataframes = [glob.glob(f'{os.path.join(root_dir, subreddit)}/*.csv', recursive=True) for subreddit in subreddits]   
     # subreddits = ['photocritique', 'portraits', 'shittyHDR', 'postprocessing', 'photographs', 'AskPhotography']
-    subreddit_submissions = [submissions_file for subreddit in submissions_dataframes for submissions_file in subreddit][:2] 
+    subreddit_submissions = [submissions_file for subreddit in submissions_dataframes for submissions_file in subreddit] 
     print(subreddit_submissions)
     
 
