@@ -12,7 +12,7 @@ install_requires = [
 	"scipy==1.8.0",
 	"timm @ git+https://github.com/rwightman/pytorch-image-models.git@95feb1da41c1fe95ce9634b83db343e08224a8c5",
 	"tokenizers==0.12.1",
-	"torch==1.11.0",
+	"torch==1.13.1",
 	"torchmetrics==0.8.2",
 	"torchsort==0.1.9",
 	"torchvision==0.12.0",
