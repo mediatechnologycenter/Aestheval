@@ -76,7 +76,7 @@ class AVA(AestheticsDataset):
 
             self.preprocess_data()
         
-        self.post_dataset_load()
+        # self.post_dataset_load()
         
 
     def preprocess_data(self):

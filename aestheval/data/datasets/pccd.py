@@ -95,4 +95,4 @@ class PCCD(AestheticsDataset):
                 
         self.is_train = True if split.lower() == 'train' else False
 
-        self.post_dataset_load()
+        # self.post_dataset_load()

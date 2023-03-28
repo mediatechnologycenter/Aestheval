@@ -11,7 +11,7 @@ MIN_CHARS_THRESHOLD = 0
 def compute_score(sentiments: "list[dict]"):
     
     # Compute score for the arbitrary number of comments that each image might have. Compute only if prediction is not None.
-    scores = [attribute['Positive'] + 0.5*attribute['Neutral'] for attribute in sentiments.values() if attribute]
+    scores = [attribute['positive'] + 0.5*attribute['neutral'] for attribute in sentiments.values() if attribute]
     
     stdev = 0
     # variance requires at least two data points 
@@ -57,7 +57,7 @@ def sentiment_pccd(root_dir):
 
 def sentiment_reddit(root_dir):
     # Load datasets
-    reddit_dataset = {split: Reddit(split, dataset_path=os.path.join(root_dir,'reddit'), load_images=False) for split in SPLITS}
+    reddit_dataset = {split: Reddit(split, dataset_path=os.path.join(root_dir,'RPCD'), load_images=False) for split in SPLITS}
 
     # Load predictor
     predictor = Predictor(model_path="cardiffnlp/twitter-roberta-base-sentiment-latest")
@@ -86,7 +86,7 @@ def sentiment_reddit(root_dir):
 
     for name, dataset in reddit_dataset.items():
         processed = [data for img, data in dataset]
-        with open(os.path.join(root_dir,f'reddit/processed_{name}.json'), 'w') as f:
+        with open(os.path.join(root_dir,f'RPCD/processed_{name}.json'), 'w') as f:
             json.dump(processed, f, indent=1)
 
 def sentiment_ava(root_dir):

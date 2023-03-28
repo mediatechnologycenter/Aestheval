@@ -43,10 +43,10 @@ Default `--reddit_dir` is `data/`.
 
 ### 4. Predict sentiment of comments and compute informativeness score
 
-On PCCD, AVA and RPCD (takes a while)
+On RPCD dataset (takes a while)
 
 ```
-python main.py --compute_sentiment_score --compute_informativeness_score
+python main.py --compute_sentiment_score --compute_informativeness_score --dataset_name Reddit
 ```
 
 Already processed files can be found under `data/`. This directory can be changed using the `--data_path` argument:

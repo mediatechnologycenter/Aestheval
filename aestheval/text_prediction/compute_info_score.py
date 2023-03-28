@@ -53,7 +53,7 @@ def info_pccd(root_dir):
 
 def info_reddit(root_dir):
     # Load datasets
-    reddit_dataset = {split: Reddit(split, dataset_path=os.path.join(root_dir,'reddit'), load_images=False) for split in SPLITS}
+    reddit_dataset = {split: Reddit(split, dataset_path=os.path.join(root_dir,'RPCD'), load_images=False) for split in SPLITS}
 
 
     unigram_dictionary = {}
@@ -85,7 +85,7 @@ def info_reddit(root_dir):
 
     for name, dataset in reddit_dataset.items():
         processed = [data for img, data in dataset]
-        with open(os.path.join(root_dir,f'reddit/processed_info_{name}.json'), 'w') as f:
+        with open(os.path.join(root_dir,f'RPCD/processed_info_{name}.json'), 'w') as f:
             json.dump(processed, f, indent=1)
 
 def info_ava(root_dir):

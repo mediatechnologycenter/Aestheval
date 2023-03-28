@@ -1,8 +1,8 @@
 
-import configargparse
+import argparse
 
 def config_parser():
-    parser = configargparse.ArgumentParser(description="Downloader script")   
+    parser = argparse.ArgumentParser(description="Downloader script")   
     # dataset options
     parser.add_argument("--data_path", type=str, help="Data directory to download the datasets", default="data/")
     parser.add_argument("--download_data", action='store_true', help="Whether to download data", default=False)
@@ -27,15 +27,21 @@ if __name__ == "__main__":
     
     if args.compute_sentiment_score:
         from aestheval.text_prediction.sentiment_score import *
-        sentiment_pccd(root_dir=args.data_path)
-        sentiment_reddit(root_dir=args.data_path)
-        sentiment_ava(root_dir=args.data_path)
+        if args.dataset_name == "PCCD":
+            sentiment_pccd(root_dir=args.data_path)
+        if args.dataset_name == "Reddit":
+            sentiment_reddit(root_dir=args.data_path)
+        if args.dataset_name == "AVA":
+            sentiment_ava(root_dir=args.data_path)
 
     if args.compute_informativeness_score:
         from aestheval.text_prediction.compute_info_score import *
-        info_pccd(root_dir=args.data_path)
-        info_reddit(root_dir=args.data_path)
-        info_ava(root_dir=args.data_path)
+        if args.dataset_name == "PCCD":
+            info_pccd(root_dir=args.data_path)
+        if args.dataset_name == "Reddit":
+            info_reddit(root_dir=args.data_path)
+        if args.dataset_name == "AVA":
+            info_ava(root_dir=args.data_path)
 
     if args.run_baseline:
         from aestheval.baselines.run_baseline import run

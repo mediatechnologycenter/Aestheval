@@ -42,6 +42,9 @@ tokenizer = RegexpTokenizer(r'\w+\S*\w*')
 stop = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
 
+subjectivity_threshold = 120
+objectivity_threshold = 20
+
 remove_char_map = dict((ord(char), None) for char in exclude)
 lame_word_list = ['challenge', 'challenges', 'congrats', 'congratulations',\
 'congratulation', 'title','titles',  'ribbon', 'ribbons','score', 'scores','scored', \

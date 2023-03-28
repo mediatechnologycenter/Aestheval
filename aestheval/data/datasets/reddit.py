@@ -79,9 +79,9 @@ class Reddit(AestheticsDataset):
             with open(datafile, 'r') as f:
                 data = json.load(f)
             data = pd.DataFrame(data)
-            ids = pd.read_csv(Path(reddit_files_path, f"{split}_ids.csv"), header=None, names=['im_paths'])
-            data = data[data['im_paths'].isin(ids['im_paths'])]
-            data['im_id'] = data['im_paths'].apply(lambda x: x.split('submission_')[1].split('-')[0])                
+            ids = pd.read_csv(Path(reddit_files_path, f"{split}_ids.csv"), header=None, names=['im_id'])
+            data['im_id'] = data['im_paths'].apply(lambda x: x.split('/')[1].split('-')[0])
+            data = data[data['im_id'].isin(ids['im_id'])]                
             self.ids = data['im_id'].tolist()
             self.dataset = json.loads(data.to_json(orient='records', indent=1))
 
@@ -92,4 +92,4 @@ class Reddit(AestheticsDataset):
 
         self.is_train = True if split == 'TRAIN' else False
 
-        self.post_dataset_load()
+        # self.post_dataset_load()
